@@ -1,7 +1,7 @@
 #pragma once
 #include <atomic>
 #include "Common.h"
-
+#include "Camera.h"
 
 class Renderer {
 public:
@@ -18,4 +18,6 @@ private:
 	uint32_t* mBuffer = nullptr;
 	
 	std::atomic<int> mCurrentPixelIndex = 0;
+
+	Camera mCamera;
 };

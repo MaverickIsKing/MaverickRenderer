@@ -5,7 +5,18 @@
 
 const int numThreads = std::thread::hardware_concurrency();
 
-Renderer::Renderer(int w, int h) : mViewportWidth(w), mViewportHeight(h) {}
+Renderer::Renderer(int w, int h) : mViewportWidth(w), mViewportHeight(h) {
+    mCurrentPixelIndex = 0;
+    
+    mCamera.Initialize(
+        Vector3f(10.0f, 5.0f, 20.0f), // camera position
+        Vector3f(10.0f, 10.0f, 30.0f), // target
+        Vector3f(0.0f, 1.0f, 0.0f), // up
+        glm::radians(60.0f), // FOV
+        0.1f, // near panel
+        1000.0f, // far panel
+        w, h); // viewport W, H
+}
 
 void Renderer::Run() {
     struct mfb_window* window = mfb_open_ex("Maverick Renderer", mViewportWidth, mViewportHeight, MFB_WF_RESIZABLE);
@@ -38,12 +49,17 @@ void Renderer::Run() {
 }
 
 Color Renderer::RenderPixel(int x, int y) {
+    // Get the ray emiting from camera origin through some p in the world where p depends on the pixel coordinate (x, y). ie: p = invCombinedMatrix((x, y, 0, 1))
+    Ray ray = mCamera.GetRay(x, y);
     
-    Color color;
-    color.r = (float)x / mViewportWidth;
-    color.g = (float)y / mViewportHeight;
-    color.b = 0.0f;
-    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    Vector3f d = ray.d;
+    Color color = d * 0.5f + 0.5f;
+
+    //Color color;
+    //color.r = (float)x / mViewportWidth;
+    //color.g = (float)y / mViewportHeight;
+    //color.b = 0.0f;
+    // std::this_thread::sleep_for(std::chrono::milliseconds(1));
     return color;
 }
 
