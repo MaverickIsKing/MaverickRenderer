@@ -41,7 +41,7 @@ void Camera::Initialize(const Vector3f& p, const Vector3f& target, const Vector3
 	mInvCombinedMatrix = invCombinedMatrix;
 }
 
-Ray Camera::GetRay(int x, int y) const {
+Ray Camera::GetRay(float x, float y) const {
 	Ray ray;
 	ray.o = mPosition;
 	

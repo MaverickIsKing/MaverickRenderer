@@ -40,8 +40,8 @@ inline Matrix4x4 MakeRotation(const Vector3f& euler) {
 
     Matrix4x4 rx(
         1.0f, 0.0f, 0.0f, 0.0f,
-        1.0f, cx, sx, 0.0f,
-        1.0f, -sx, cx, 0.0f,
+        0.0f, cx, sx, 0.0f,
+        0.0f, -sx, cx, 0.0f,
         0.0f, 0.0f, 0.0f, 1.0f);
 
     Matrix4x4 ry(

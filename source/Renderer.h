@@ -2,6 +2,9 @@
 #include <atomic>
 #include "Common.h"
 #include "Camera.h"
+#include "Sphere.h"
+#include "Disk.h"
+#include "Triangle.h"
 
 class Renderer {
 public:
@@ -20,4 +23,10 @@ private:
 	std::atomic<int> mCurrentPixelIndex = 0;
 
 	Camera mCamera;
+
+	Sphere* mSphere;
+
+	Disk* mDisk;
+
+	Triangle* mTriangle;
 };

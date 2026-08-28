@@ -4,18 +4,25 @@
 #include <vector>
 
 const int numThreads = std::thread::hardware_concurrency();
+const int numOfSSAA = 100;
 
 Renderer::Renderer(int w, int h) : mViewportWidth(w), mViewportHeight(h) {
     mCurrentPixelIndex = 0;
     
     mCamera.Initialize(
-        Vector3f(10.0f, 5.0f, 20.0f), // camera position
-        Vector3f(10.0f, 10.0f, 30.0f), // target
+        Vector3f(0.0f, 0.0f, -3.0f), // camera position
+        Vector3f(0.0f, 0.0f, 1.0f), // target
         Vector3f(0.0f, 1.0f, 0.0f), // up
         glm::radians(60.0f), // FOV
         0.1f, // near panel
         1000.0f, // far panel
         w, h); // viewport W, H
+
+    mSphere = new Sphere(Vector3f(-3.0f, -0.5f, 2.0f), 1.0f);
+
+    mDisk = new Disk(Vector3f(0, 0, 5), Vector3f(0, 0, 0), 1.0f);
+
+    mTriangle = new Triangle(Vector3f(-1, 0, 0), Vector3f(0, 1, 0), Vector3f(1, 0, 0), MakeWorldTransform(Vector3f(0, 0, 5), Vector3f(0, 0, 1), 1.0f));
 }
 
 void Renderer::Run() {
@@ -49,18 +56,24 @@ void Renderer::Run() {
 }
 
 Color Renderer::RenderPixel(int x, int y) {
-    // Get the ray emiting from camera origin through some p in the world where p depends on the pixel coordinate (x, y). ie: p = invCombinedMatrix((x, y, 0, 1))
-    Ray ray = mCamera.GetRay(x, y);
-    
-    Vector3f d = ray.d;
-    Color color = d * 0.5f + 0.5f;
+    // SSAA
+    Color resultColor(0, 0, 0);
+    for (int i = 0; i < numOfSSAA; i++) {
+        float px = x + glm::linearRand(0.0f, 1.0f);
+        float py = y + glm::linearRand(0.0f, 1.0f);
 
-    //Color color;
-    //color.r = (float)x / mViewportWidth;
-    //color.g = (float)y / mViewportHeight;
-    //color.b = 0.0f;
-    // std::this_thread::sleep_for(std::chrono::milliseconds(1));
-    return color;
+        // Get the ray emiting from camera origin through some p in the world where p depends on the pixel coordinate (x, y). ie: p = invCombinedMatrix((x, y, 0, 1))
+        Ray ray = mCamera.GetRay(px, py);
+
+        Intersection isect;
+        Color color(0, 0, 0);
+        if (mDisk->Intersect(ray, isect)) {
+            color = isect.normal * 0.5f + 0.5f;
+        }
+        resultColor += color / (float)numOfSSAA;
+    }
+
+    return resultColor;
 }
 
 // render thread's entry
@@ -79,7 +92,8 @@ void Renderer::RunRenderThread() {
     //}
 
     //multi threads:
-    // fetch the next pixel on current viewport waiting to be rendered
+    
+    // fetch the next pixel in current viewport waiting to be rendered
     while (true) {
         int pixelIndex = mCurrentPixelIndex.fetch_add(1);
         if (pixelIndex >= mViewportWidth * mViewportHeight) {
