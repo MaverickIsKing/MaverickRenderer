@@ -1,10 +1,10 @@
 #pragma once
-#include "Ray.h"
+#include "Primitive.h"
 
-class Triangle {
+class Triangle : public Primitive {
 public:
-	Triangle(const Vector3f& v0, const Vector3f& v1, const Vector3f& v2, const Matrix4x4 worldMatrix);
-	bool Intersect(Ray ray, Intersection& isect) const;
+	Triangle(SceneObject* pSceneObject, const Vector3f& v0, const Vector3f& v1, const Vector3f& v2);
+	virtual bool Intersect(Ray ray, Intersection& isect) const override;
 private:
 	// vertices in world coord
 	Vector3f mVertices[3];

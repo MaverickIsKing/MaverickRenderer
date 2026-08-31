@@ -5,28 +5,30 @@
 #include "Sphere.h"
 #include "Disk.h"
 #include "Triangle.h"
+#include "Scene.h"
+#include <vector>
 
 class Renderer {
 public:
-	Renderer(int w, int h);
-	virtual ~Renderer() {}
+	Renderer(int w, int h, int SamplePerPixel, const char* filepath);
+	virtual ~Renderer();
 	void Run();
 
 private:
 	Color RenderPixel(int x, int y);
+
+	Color RenderSubPixel(float x, float y);
+
 	void RunRenderThread();
 
 	int mViewportWidth = 800;
 	int mViewportHeight = 600;
+
+	int mSamplePerPixel = 100;
+
 	uint32_t* mBuffer = nullptr;
 	
 	std::atomic<int> mCurrentPixelIndex = 0;
 
-	Camera mCamera;
-
-	Sphere* mSphere;
-
-	Disk* mDisk;
-
-	Triangle* mTriangle;
+	Scene* mScene = nullptr;
 };

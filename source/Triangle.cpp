@@ -1,6 +1,8 @@
 #include "Triangle.h"
+#include "SceneObject.h"
 
-Triangle::Triangle(const Vector3f& v0, const Vector3f& v1, const Vector3f& v2, const Matrix4x4 worldMatrix) {
+Triangle::Triangle(SceneObject* pSceneObject, const Vector3f& v0, const Vector3f& v1, const Vector3f& v2) : Primitive(pSceneObject) {
+	Matrix4x4 worldMatrix = m_pSceneObject->GetObjectToWorld();
 	mVertices[0] = Vector3f(worldMatrix * Vector4f(v0, 1.0f));
 	mVertices[1] = Vector3f(worldMatrix * Vector4f(v1, 1.0f));
 	mVertices[2] = Vector3f(worldMatrix * Vector4f(v2, 1.0f));

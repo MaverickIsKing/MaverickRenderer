@@ -4,26 +4,44 @@
 #include <vector>
 
 const int numThreads = std::thread::hardware_concurrency();
-const int numOfSSAA = 100;
+// const int numOfSSAA = 100;
 
-Renderer::Renderer(int w, int h) : mViewportWidth(w), mViewportHeight(h) {
+Renderer::Renderer(int w, int h, int SamplePerPixel, const char* filepath) : mViewportWidth(w), mViewportHeight(h), mSamplePerPixel(SamplePerPixel) {
     mCurrentPixelIndex = 0;
-    
-    mCamera.Initialize(
-        Vector3f(0.0f, 0.0f, -3.0f), // camera position
-        Vector3f(0.0f, 0.0f, 1.0f), // target
-        Vector3f(0.0f, 1.0f, 0.0f), // up
-        glm::radians(60.0f), // FOV
-        0.1f, // near panel
-        1000.0f, // far panel
-        w, h); // viewport W, H
 
-    mSphere = new Sphere(Vector3f(-3.0f, -0.5f, 2.0f), 1.0f);
+    mScene = Scene::LoadSceneFromXML(filepath, w, h);
 
-    mDisk = new Disk(Vector3f(0, 0, 5), Vector3f(0, 0, 0), 1.0f);
+    //mScene = new Scene();
+    ////setting camera
+    //Camera camera;
+    //camera.Initialize(
+    //    Vector3f(0.0f, 0.0f, 0.0f), // camera position
+    //    Vector3f(0.0f, 0.0f, 1.0f), // target
+    //    Vector3f(0.0f, 1.0f, 0.0f), // up
+    //    glm::radians(60.0f), // FOV
+    //    0.1f, // near panel
+    //    1000.0f, // far panel
+    //    w, h); // viewport W, H
 
-    mTriangle = new Triangle(Vector3f(-1, 0, 0), Vector3f(0, 1, 0), Vector3f(1, 0, 0), MakeWorldTransform(Vector3f(0, 0, 5), Vector3f(0, 0, 1), 1.0f));
+    //mScene->SetCamera(camera);
+
+    ////setting scene (adding SceneObjects)
+
+    //SceneObject* pSceneObject = mScene->CreateSceneObject(Vector3f(0, 0, 5), Vector3f(0, 0, 0), 2.0f);
+    //pSceneObject->CreatePrimitive<Triangle>(Vector3f(-1, -1, 0), Vector3f(1, -1, 0), Vector3f(1, 1, 0));
+    //pSceneObject->CreatePrimitive<Triangle>(Vector3f(-1, -1, 0), Vector3f(1, 1, 0), Vector3f(-1, 1, 0));
+
+    //SceneObject* pSceneObject2 = mScene->CreateSceneObject(Vector3f(0, 0, 2.0f), Vector3f(0, 0, 0), 1.0f);
+    //pSceneObject2->CreatePrimitive<Sphere>(0.5f);
 }
+
+Renderer::~Renderer() {
+    if (mScene) {
+        delete mScene;
+    }
+}
+
+
 
 void Renderer::Run() {
     struct mfb_window* window = mfb_open_ex("Maverick Renderer", mViewportWidth, mViewportHeight, MFB_WF_RESIZABLE);
@@ -58,22 +76,41 @@ void Renderer::Run() {
 Color Renderer::RenderPixel(int x, int y) {
     // SSAA
     Color resultColor(0, 0, 0);
-    for (int i = 0; i < numOfSSAA; i++) {
+    const int N = mSamplePerPixel;
+    for (int i = 0; i < N; i++) {
+
         float px = x + glm::linearRand(0.0f, 1.0f);
         float py = y + glm::linearRand(0.0f, 1.0f);
 
-        // Get the ray emiting from camera origin through some p in the world where p depends on the pixel coordinate (x, y). ie: p = invCombinedMatrix((x, y, 0, 1))
-        Ray ray = mCamera.GetRay(px, py);
+        Color color = RenderSubPixel(px, py);
 
-        Intersection isect;
-        Color color(0, 0, 0);
-        if (mDisk->Intersect(ray, isect)) {
-            color = isect.normal * 0.5f + 0.5f;
-        }
-        resultColor += color / (float)numOfSSAA;
+        resultColor += color / (float)N;
     }
 
     return resultColor;
+}
+
+Color Renderer::RenderSubPixel(float x, float y) {
+    // Get the ray emiting from camera origin through some p in the world where p depends on the pixel coordinate (x, y). ie: p = invCombinedMatrix((x, y, 0, 1))
+    Ray ray = mScene->GetCamera().GetRay(x, y);
+    Intersection isect;
+    Color color(0, 0, 0);
+
+    if (mScene->Intersect(ray, isect)) {
+        color = isect.normal * 0.5f + 0.5f;
+    }
+    //bool hit = false;
+    //for (const auto& primitive : mPrimitives) {
+    //    if (primitive->Intersect(ray, isect)) {
+    //        ray.maxt = isect.t;
+    //        hit = true;
+    //    }
+    //}
+
+    //if (hit) {
+    //    color = isect.normal * 0.5f + 0.5f;
+    //}
+    return color;
 }
 
 // render thread's entry

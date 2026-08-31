@@ -1,16 +1,14 @@
 #pragma once
-#include "Ray.h"
+#include "Primitive.h"
 
 
 
-class Sphere {
+class Sphere : public Primitive {
 public:
-	Sphere(const Vector3f center, float R);
+	Sphere(SceneObject* pSceneObject, float R);
 
-	bool Intersect(Ray ray, Intersection& intersect) const;
+	virtual bool Intersect(Ray ray, Intersection& intersect) const override;
 
 private:
 	float mRadius;
-	Matrix4x4 mObjectToWorld;
-	Matrix4x4 mWorldToObject;
 };

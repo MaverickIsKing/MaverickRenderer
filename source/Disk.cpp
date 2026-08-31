@@ -1,14 +1,13 @@
 #include "Disk.h"
+#include "SceneObject.h"
 
-Disk::Disk(const Vector3f& center, const Vector3f& euler, float R) :mRadius(R) {
-	mObjectToWorld = MakeWorldTransform(center, euler, 1.0f);
-	mWorldToObject = glm::inverse(mObjectToWorld);
+Disk::Disk(SceneObject* pSceneObject, float R) : Primitive(pSceneObject), mRadius(R) {
 
 }
 
 bool Disk::Intersect(Ray ray, Intersection& isect) const {
 	// transform ray to local
-	Ray r = mWorldToObject * ray;
+	Ray r = m_pSceneObject->GetWorldToObject() * ray;
 
 	// t = -o.z / d.z
 	if (fabs(r.d.z) < 1e-6f) { // ray parallel to disk
@@ -26,8 +25,8 @@ bool Disk::Intersect(Ray ray, Intersection& isect) const {
 		return false;
 	}
 
-	isect.position = Vector3f(mObjectToWorld * Vector4f(p, 1.0f)); // world intersection point
-	isect.normal = glm::normalize(Vector3f(mObjectToWorld * Vector4f(0, 0, 1, 0))); // world normal (transformed from z-axis = (0,0,1,0))
+	isect.position = Vector3f(m_pSceneObject->GetObjectToWorld() * Vector4f(p, 1.0f)); // world intersection point
+	isect.normal = glm::normalize(Vector3f(m_pSceneObject->GetObjectToWorld() * Vector4f(0, 0, 1, 0))); // world normal (transformed from z-axis = (0,0,1,0))
 	isect.t = t;
 	
 	return true;

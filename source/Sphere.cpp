@@ -1,13 +1,13 @@
 #include "Sphere.h"
+#include "SceneObject.h"
 
-Sphere::Sphere(const Vector3f center, float R) :mRadius(R) {
-	mObjectToWorld = MakeWorldTransform(center, Vector3f(0.0f, 0.0f, 0.0f), 1.0f);
-	mWorldToObject = glm::inverse(mObjectToWorld);
+Sphere::Sphere(SceneObject* pSceneObject, float R) : Primitive(pSceneObject), mRadius(R) {
+
 }
 
 bool Sphere::Intersect(Ray ray, Intersection& isect) const {
 	// ray transfrom to local coordinate
-	Ray r = mWorldToObject * ray;
+	Ray r = m_pSceneObject->GetWorldToObject() * ray;
 
 	//equation to solve t: d^2t^2 + 2(o.d)t + o^2 - R^2 = 0
 	float A = glm::dot(r.d, r.d);
@@ -38,9 +38,8 @@ bool Sphere::Intersect(Ray ray, Intersection& isect) const {
 	Vector3f p = r.o + t * r.d; // local intersection 
 	Vector3f n = glm::normalize(p); // local normal
 	
-	isect.position = Vector3f(mObjectToWorld * Vector4f(p, 1.0f)); // world intersection
-	isect.normal = glm::normalize(Vector3f(mObjectToWorld * Vector4f(n, 0.0f))); // world normal
+	isect.position = Vector3f(m_pSceneObject->GetObjectToWorld() * Vector4f(p, 1.0f)); // world intersection
+	isect.normal = glm::normalize(Vector3f(m_pSceneObject->GetObjectToWorld() * Vector4f(n, 0.0f))); // world normal
 	isect.t = t;
-
 	return true;
 }
