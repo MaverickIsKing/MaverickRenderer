@@ -10,7 +10,11 @@ Renderer::Renderer(int w, int h, int SamplePerPixel, const char* filepath) : mVi
     mCurrentPixelIndex = 0;
 
     mScene = Scene::LoadSceneFromXML(filepath, w, h);
-
+    
+    //mScene->CreateLight<DirectionalLight>(Vector3f(-1, -1, -1), Color(1, 0, 0));
+    //mScene->CreateLight<PointLight>(Vector3f(0, 5, 0), Color(0, 1.0f, 0), Vector3f(1, 0,0));
+    
+    
     //mScene = new Scene();
     ////setting camera
     //Camera camera;
@@ -93,12 +97,16 @@ Color Renderer::RenderPixel(int x, int y) {
 Color Renderer::RenderSubPixel(float x, float y) {
     // Get the ray emiting from camera origin through some p in the world where p depends on the pixel coordinate (x, y). ie: p = invCombinedMatrix((x, y, 0, 1))
     Ray ray = mScene->GetCamera().GetRay(x, y);
-    Intersection isect;
-    Color color(0, 0, 0);
+    
+    
+    //Intersection isect;
+    //Color color(0, 0, 0);
 
-    if (mScene->Intersect(ray, isect)) {
-        color = isect.normal * 0.5f + 0.5f;
-    }
+    //if (mScene->Intersect(ray, isect)) {
+    //    color = isect.normal * 0.5f + 0.5f;
+    //}
+    
+    
     //bool hit = false;
     //for (const auto& primitive : mPrimitives) {
     //    if (primitive->Intersect(ray, isect)) {
@@ -110,7 +118,40 @@ Color Renderer::RenderSubPixel(float x, float y) {
     //if (hit) {
     //    color = isect.normal * 0.5f + 0.5f;
     //}
-    return color;
+    return GetIrradiance(ray);
+}
+
+Color Renderer::GetIrradiance(const Ray& ray)
+{   
+    Intersection isect;
+    if (!mScene->Intersect(ray, isect)) {
+        return Color(0, 0, 0);
+    }
+
+    // E(p)
+
+    Color E(0, 0, 0);
+    for (Light* pLight : mScene->GetLights()) {
+        Vector3f sourcePos;
+        Color L = pLight->GetRadiance(isect.position, sourcePos);
+
+        // test if the light can be received
+        Vector3f d = sourcePos - isect.position;
+        Ray shadowRay;
+        shadowRay.o = isect.position;
+        shadowRay.d = glm::normalize(d);
+        shadowRay.mint = 1e-3f;
+        shadowRay.maxt = glm::length(d);
+
+        Intersection shadow_isect;
+        if (mScene->Intersect(shadowRay, shadow_isect)) { // if shadowRay intersect some scene obj, p is in the shadow, hence continue
+            continue;
+        }
+
+        float cosTheta = glm::dot(isect.normal, shadowRay.d);
+        E += L * glm::max(cosTheta, 0.0f);
+    }
+    return E;
 }
 
 // render thread's entry

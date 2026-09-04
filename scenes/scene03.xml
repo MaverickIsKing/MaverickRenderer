@@ -1,0 +1,173 @@
+<Scene>
+	<Camera>
+		<Position>0, 0, -2</Position>
+		<Target>0, 0, 1</Target>
+		<Up>0, 1, 0</Up>
+		<NearZ>0.1</NearZ>
+		<FarZ>1000</FarZ>
+		<Fov>90</Fov>
+	</Camera>
+
+	<SceneObjects>
+		<!-- Back -->
+		<SceneObject>
+			<Transform>
+				<Position>0, 0, 1</Position>
+				<Rotation>180, 0, 0</Rotation>
+				<Scale>1.0</Scale>
+			</Transform>
+			<Primitives>
+				<Triangle>
+					<Vertex>-1.6, -1, 0</Vertex>
+					<Vertex>1.6, -1, 0</Vertex>
+					<Vertex>1.6, 1, 0</Vertex>
+				</Triangle>
+				<Triangle>
+					<Vertex>-1.6, -1, 0</Vertex>
+					<Vertex>1.6, 1, 0</Vertex>
+					<Vertex>-1.6, 1, 0</Vertex>
+				</Triangle>
+			</Primitives>
+		</SceneObject>
+
+		<!-- Left -->
+		<SceneObject>
+			<Transform>
+				<Position>-1.6, 0, 0</Position>
+				<Rotation>0, 90, 0</Rotation>
+				<Scale>1.0</Scale>
+			</Transform>
+			<Primitives>
+				<Triangle>
+					<Vertex>-1, -1, 0</Vertex>
+					<Vertex>1, -1, 0</Vertex>
+					<Vertex>1, 1, 0</Vertex>
+				</Triangle>
+				<Triangle>
+					<Vertex>-1, -1, 0</Vertex>
+					<Vertex>1, 1, 0</Vertex>
+					<Vertex>-1, 1, 0</Vertex>
+				</Triangle>
+			</Primitives>
+		</SceneObject>
+
+		<!-- Right -->
+		<SceneObject>
+			<Transform>
+				<Position>1.6, 0, 0</Position>
+				<Rotation>0, -90, 0</Rotation>
+				<Scale>1.0</Scale>
+			</Transform>
+			<Primitives>
+				<Triangle>
+					<Vertex>-1, -1, 0</Vertex>
+					<Vertex>1, -1, 0</Vertex>
+					<Vertex>1, 1, 0</Vertex>
+				</Triangle>
+				<Triangle>
+					<Vertex>-1, -1, 0</Vertex>
+					<Vertex>1, 1, 0</Vertex>
+					<Vertex>-1, 1, 0</Vertex>
+				</Triangle>
+			</Primitives>
+		</SceneObject>
+
+		<!-- Ceiling -->
+		<SceneObject>
+			<Transform>
+				<Position>0, 1, 0</Position>
+				<Rotation>90, 0, 0</Rotation>
+				<Scale>1.0</Scale>
+			</Transform>
+			<Primitives>
+				<Triangle>
+					<Vertex>-1.6, -1, 0</Vertex>
+					<Vertex>1.6, -1, 0</Vertex>
+					<Vertex>1.6, 1, 0</Vertex>
+				</Triangle>
+				<Triangle>
+					<Vertex>-1.6, -1, 0</Vertex>
+					<Vertex>1.6, 1, 0</Vertex>
+					<Vertex>-1.6, 1, 0</Vertex>
+				</Triangle>
+			</Primitives>
+		</SceneObject>
+		
+		<!-- Floor -->
+		<SceneObject>
+			<Transform>
+				<Position>0, -1, 0</Position>
+				<Rotation>-90, 0, 0</Rotation>
+				<Scale>1.0</Scale>
+			</Transform>
+			<Primitives>
+				<Triangle>
+					<Vertex>-1.6, -1, 0</Vertex>
+					<Vertex>1.6, -1, 0</Vertex>
+					<Vertex>1.6, 1, 0</Vertex>
+				</Triangle>
+				<Triangle>
+					<Vertex>-1.6, -1, 0</Vertex>
+					<Vertex>1.6, 1, 0</Vertex>
+					<Vertex>-1.6, 1, 0</Vertex>
+				</Triangle>
+			</Primitives>
+		</SceneObject>
+
+		<!-- Left Sphere -->
+		<SceneObject>
+			<Transform>
+				<Position>-0.8, -0.7, 0.7</Position>
+				<Rotation>0, 0, 0</Rotation>
+				<Scale>1.0</Scale>
+			</Transform>
+			<Primitives>
+				<Sphere>
+					<Radius>0.3</Radius>
+				</Sphere>
+			</Primitives>
+		</SceneObject>
+
+		<!-- Right Sphere -->
+		<SceneObject>
+			<Transform>
+				<Position>0.8, -0.5, 0.5</Position>
+				<Rotation>0, 0, 0</Rotation>
+				<Scale>1.0</Scale>
+			</Transform>
+			<Primitives>
+				<Sphere>
+					<Radius>0.5</Radius>
+				</Sphere>
+			</Primitives>
+		</SceneObject>
+	</SceneObjects>
+	
+	<Lights>
+		<!--Directional Light-->
+		<DirectionalLight>
+			<Direction>0, -1, 0</Direction>
+			<Radiance>0, 0, 0</Radiance>
+		</DirectionalLight>
+		
+		
+		<!--Point light-->
+		<PointLight>
+			<Position>0, 0, 0</Position>
+			<Intensity>0, 0.5, 0.9</Intensity>
+			<Attenuations>1, 0, 0</Attenuations>
+		</PointLight>
+
+		<!--Spot Light, inner/outer angles are in degree-->
+		<SpotLight>
+			<Position>-1.5, 0.5, 0</Position>
+			<Direction>2, -1, 0</Direction>
+			<Intensity>1, 1, 0</Intensity>
+			<InnerAngle>45</InnerAngle>
+			<OuterAngle>60</OuterAngle>
+			<Attenuations>1, 0, 0</Attenuations>
+		</SpotLight>
+		
+	</Lights>
+	
+</Scene>

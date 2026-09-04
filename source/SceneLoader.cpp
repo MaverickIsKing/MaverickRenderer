@@ -4,8 +4,11 @@
 #include "Disk.h"
 #include "Sphere.h"
 #include "Triangle.h"
+#include "Light.h"
 #include "tinyxml2.h"
 #include <cstdio>
+#include <glm/glm.hpp>
+#include <glm/gtc/constants.hpp>
 
 // 解析 "x, y, z" 格式的字符串为 Vector3f
 static Vector3f ParseVector3f(const char* str)
@@ -14,7 +17,7 @@ static Vector3f ParseVector3f(const char* str)
 	if (!str) return v;
 
 	if (std::sscanf(str, " %f , %f , %f", &v.x, &v.y, &v.z) != 3) {
-		// 解析失败：可选择保持默认值或报错处理
+		// 解析失败，可选择保持默认值或报错处理
 		v = Vector3f(0.0f);
 	}
 	return v;
@@ -27,7 +30,7 @@ static Vector2f ParseVector2f(const char* str)
 	if (!str) return v;
 
 	if (std::sscanf(str, " %f , %f", &v.x, &v.y) != 2) {
-		// 解析失败：可选择保持默认值或报错处理
+		// 解析失败，可选择保持默认值或报错处理
 		v = Vector2f(0.0f);
 	}
 	return v;
@@ -53,7 +56,6 @@ Scene* Scene::LoadSceneFromXML(const char* filepath, int W, int H)
 {
 	tinyxml2::XMLDocument doc;
 	if (doc.LoadFile(filepath) != tinyxml2::XML_SUCCESS)
-		
 		return nullptr;
 
 	tinyxml2::XMLElement* pRoot = doc.FirstChildElement("Scene");
@@ -75,7 +77,7 @@ Scene* Scene::LoadSceneFromXML(const char* filepath, int W, int H)
 		float fovRad = glm::radians(fovDeg);
 
 		Camera camera;
-		camera.Initialize(position, target, up, fovRad, nearZ, farZ, W, H);
+        camera.Initialize(position, target, up, fovRad, nearZ, farZ, W, H);
 		pScene->SetCamera(camera);
 	}
 
@@ -146,6 +148,51 @@ Scene* Scene::LoadSceneFromXML(const char* filepath, int W, int H)
 					}
 				}
 			}
+		}
+	}
+
+	// 解析 Lights
+	tinyxml2::XMLElement* pLightsElem = pRoot->FirstChildElement("Lights");
+	if (pLightsElem)
+	{
+		// DirectionalLight
+		for (tinyxml2::XMLElement* pElem = pLightsElem->FirstChildElement("DirectionalLight");
+			pElem != nullptr;
+			pElem = pElem->NextSiblingElement("DirectionalLight"))
+		{
+			Vector3f direction = ParseVector3f(GetChildText(pElem, "Direction"));
+			Color    radiance  = ParseVector3f(GetChildText(pElem, "Radiance"));
+			pScene->CreateLight<DirectionalLight>(direction, radiance);
+		}
+
+		// PointLight
+		for (tinyxml2::XMLElement* pElem = pLightsElem->FirstChildElement("PointLight");
+			pElem != nullptr;
+			pElem = pElem->NextSiblingElement("PointLight"))
+		{
+			Vector3f position     = ParseVector3f(GetChildText(pElem, "Position"));
+			Color    intensity    = ParseVector3f(GetChildText(pElem, "Intensity"));
+			Vector3f attenuations = ParseVector3f(GetChildText(pElem, "Attenuations"));
+			pScene->CreateLight<PointLight>(position, intensity, attenuations);
+		}
+
+		// SpotLight
+		for (tinyxml2::XMLElement* pElem = pLightsElem->FirstChildElement("SpotLight");
+			pElem != nullptr;
+			pElem = pElem->NextSiblingElement("SpotLight"))
+		{
+			Vector3f position     = ParseVector3f(GetChildText(pElem, "Position"));
+			Vector3f direction    = ParseVector3f(GetChildText(pElem, "Direction"));
+			Color    intensity    = ParseVector3f(GetChildText(pElem, "Intensity"));
+			float    innerAngle   = GetChildFloat(pElem, "InnerAngle", 0.0f);
+			float    outerAngle   = GetChildFloat(pElem, "OuterAngle", 0.0f);
+			Vector3f attenuations = ParseVector3f(GetChildText(pElem, "Attenuations"));
+
+			// XML 中以"度"为单位，转换为弧度
+			float innerRad = glm::radians(innerAngle);
+			float outerRad = glm::radians(outerAngle);
+
+			pScene->CreateLight<SpotLight>(position, direction, intensity, innerRad, outerRad, attenuations);
 		}
 	}
 

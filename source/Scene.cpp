@@ -23,4 +23,11 @@ Scene::~Scene() {
 			delete pSceneObject;
 		}
 	}
+
+	for (Light* pLight : mLights) {
+		if (pLight) {
+			delete pLight;
+		}
+	}
+
 }

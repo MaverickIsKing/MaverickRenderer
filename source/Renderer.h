@@ -19,6 +19,8 @@ private:
 
 	Color RenderSubPixel(float x, float y);
 
+	Color GetIrradiance(const Ray& ray);
+
 	void RunRenderThread();
 
 	int mViewportWidth = 800;
