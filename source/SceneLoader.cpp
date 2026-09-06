@@ -5,6 +5,7 @@
 #include "Sphere.h"
 #include "Triangle.h"
 #include "Light.h"
+#include "Material.h"
 #include "tinyxml2.h"
 #include <cstdio>
 #include <glm/glm.hpp>
@@ -81,6 +82,31 @@ Scene* Scene::LoadSceneFromXML(const char* filepath, int W, int H)
 		pScene->SetCamera(camera);
 	}
 
+	// 解析 Materials（必须在 SceneObjects 之前，以便后续按名字引用）
+	tinyxml2::XMLElement* pMaterialsElem = pRoot->FirstChildElement("Materials");
+	if (pMaterialsElem)
+	{
+		for (tinyxml2::XMLElement* pMatElem = pMaterialsElem->FirstChildElement("Material");
+			pMatElem != nullptr;
+			pMatElem = pMatElem->NextSiblingElement("Material"))
+		{
+			const char* nameText = GetChildText(pMatElem, "Name");
+			const char* typeText = GetChildText(pMatElem, "Type");
+			if (!nameText || !typeText)
+				continue;
+
+			std::string name = nameText;
+			std::string type = typeText;
+
+			if (type == "Lambert")
+			{
+				Color albedo = ParseVector3f(GetChildText(pMatElem, "Albedo"));
+				pScene->CreateMaterial<LambertMaterial>(name, albedo);
+			}
+			// 后续可在此扩展更多材质类型
+		}
+	}
+
 	// 解析 SceneObjects
 	tinyxml2::XMLElement* pSceneObjectsElem = pRoot->FirstChildElement("SceneObjects");
 	if (pSceneObjectsElem)
@@ -106,6 +132,15 @@ Scene* Scene::LoadSceneFromXML(const char* filepath, int W, int H)
 
 			if (!pSceneObject)
 				continue;
+
+			// 解析 Material 引用（按材质名查找）
+			const char* materialName = GetChildText(pObjElem, "Material");
+			if (materialName)
+			{
+				Material* pMaterial = pScene->GetMaterial(materialName);
+				if (pMaterial)
+					pSceneObject->SetMaterial(pMaterial);
+			}
 
 			// 解析 Primitives
 			tinyxml2::XMLElement* pPrimitivesElem = pObjElem->FirstChildElement("Primitives");

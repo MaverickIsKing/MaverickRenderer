@@ -8,6 +8,25 @@
 		<Fov>45</Fov>
 	</Camera>
 
+	<Materials>
+		<Material>
+			<Name>M_Lambert_Red</Name>
+			<Type>Lambert</Type>
+			<Albedo>0.6, 0.2, 0.2</Albedo>
+		</Material>
+		<Material>
+			<Name>M_Lambert_Blue</Name>
+			<Type>Lambert</Type>
+			<Albedo>0.2, 0.2, 0.6</Albedo>
+		</Material>
+		<Material>
+			<Name>M_Lambert_Grey</Name>
+			<Type>Lambert</Type>
+			<Albedo>0.5, 0.5, 0.5</Albedo>
+		</Material>
+	</Materials>
+	
+
 	<SceneObjects>
 		<!-- left sphere -->
 		<SceneObject>
@@ -16,6 +35,7 @@
 				<Rotation>0, 0, 0</Rotation>
 				<Scale>1</Scale>
 			</Transform>
+			<Material>M_Lambert_Grey</Material>
 			<Primitives>
 				<Sphere>
 					<Radius>0.3</Radius>
@@ -30,6 +50,7 @@
 				<Rotation>0, 0, 0</Rotation>
 				<Scale>1</Scale>
 			</Transform>
+			<Material>M_Lambert_Grey</Material>
 			<Primitives>
 				<Sphere>
 					<Radius>0.3</Radius>
@@ -44,6 +65,7 @@
 				<Rotation>-90, 0, 0</Rotation>
 				<Scale>1</Scale>
 			</Transform>
+			<Material>M_Lambert_Grey</Material>
 			<Primitives>
 				<Triangle>
 					<Vertex>-1, -1, 0</Vertex>
@@ -65,6 +87,7 @@
 				<Rotation>90, 0, 0</Rotation>
 				<Scale>1</Scale>
 			</Transform>
+			<Material>M_Lambert_Grey</Material>
 			<Primitives>
 				<Triangle>
 					<Vertex>-1, -1, 0</Vertex>
@@ -86,6 +109,7 @@
 				<Rotation>0, 90, 0</Rotation>
 				<Scale>1</Scale>
 			</Transform>
+			<Material>M_Lambert_Red</Material>
 			<Primitives>
 				<Triangle>
 					<Vertex>-1, -0.75, 0</Vertex>
@@ -107,6 +131,7 @@
 				<Rotation>0, -90, 0</Rotation>
 				<Scale>1</Scale>
 			</Transform>
+			<Material>M_Lambert_Red</Material>
 			<Primitives>
 				<Triangle>
 					<Vertex>-1, -0.75, 0</Vertex>
@@ -128,6 +153,7 @@
 				<Rotation>180, 0, 0</Rotation>
 				<Scale>1</Scale>
 			</Transform>
+			<Material>M_Lambert_Blue</Material>
 			<Primitives>
 				<Triangle>
 					<Vertex>-1, -0.75, 0</Vertex>
@@ -156,14 +182,14 @@
 		<!-- 点光源 -->
 		<PointLight>
 			<Position>0, 1, 0</Position>
-			<Intensity>0.3, 0.3, 1.1</Intensity>
+			<Intensity>2, 2, 2</Intensity>
 			<Attenuations>1, 0, 0</Attenuations>
 		</PointLight>
 
 		<SpotLight>
 			<Position>-0.8, 0.9, 0</Position>
 			<Direction>2, -1, 0</Direction>
-			<Intensity>1.2, 0.8, 0</Intensity>
+			<Intensity>2, 2, 2</Intensity>
 			<InnerAngle>10</InnerAngle>
 			<OuterAngle>60</OuterAngle>
 			<Attenuations>1, 0, 0</Attenuations>

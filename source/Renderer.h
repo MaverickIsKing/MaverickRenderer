@@ -21,6 +21,8 @@ private:
 
 	Color GetIrradiance(const Ray& ray);
 
+	Color GetRadiance(const Ray& ray);
+
 	void RunRenderThread();
 
 	int mViewportWidth = 800;

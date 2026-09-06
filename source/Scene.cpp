@@ -30,4 +30,7 @@ Scene::~Scene() {
 		}
 	}
 
+	for (auto& pair : mMaterials) {
+		delete pair.second;
+	}
 }

@@ -16,6 +16,7 @@ using Matrix2x2 = glm::mat2x2;
 using Matrix3x3 = glm::mat3x3;
 using Matrix4x4 = glm::mat4x4;
 const float PI = glm::pi<float>();
+const float INV_PI = 1.0f / PI;
 
 inline void DumpVector(const Vector3f& v) {
     std::cout << "Vector3f( " << v.x << ", " << v.y << ", " << v.z << ")" << std::endl;

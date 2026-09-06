@@ -1,4 +1,5 @@
 #include "Renderer.h"
+#include "Material.h"
 #include <MiniFB.h>
 #include <thread>
 #include <vector>
@@ -11,6 +12,13 @@ Renderer::Renderer(int w, int h, int SamplePerPixel, const char* filepath) : mVi
 
     mScene = Scene::LoadSceneFromXML(filepath, w, h);
     
+    //auto pMaterial1 = mScene->CreateMaterial<LambertMaterial>("RedLambert", Color(1.0f, 0.0f, 0.0f));
+    //auto pSceneObject1 = mScene->CreateSceneObject(Vector3f(0, 0, 5), Vector3f(0, 0, 0), 2.0f);
+    //auto pSceneObject2 = mScene->CreateSceneObject(Vector3f(0, 0, 2), Vector3f(0, 0, 0), 2.0f);
+
+
+    //pSceneObject1->SetMaterial(pMaterial1);
+    //pSceneObject1->SetMaterial(pMaterial1);
     //mScene->CreateLight<DirectionalLight>(Vector3f(-1, -1, -1), Color(1, 0, 0));
     //mScene->CreateLight<PointLight>(Vector3f(0, 5, 0), Color(0, 1.0f, 0), Vector3f(1, 0,0));
     
@@ -118,7 +126,7 @@ Color Renderer::RenderSubPixel(float x, float y) {
     //if (hit) {
     //    color = isect.normal * 0.5f + 0.5f;
     //}
-    return GetIrradiance(ray);
+    return GetRadiance(ray);
 }
 
 Color Renderer::GetIrradiance(const Ray& ray)
@@ -152,6 +160,48 @@ Color Renderer::GetIrradiance(const Ray& ray)
         E += L * glm::max(cosTheta, 0.0f);
     }
     return E;
+}
+
+Color Renderer::GetRadiance(const Ray& ray)
+{
+    Intersection isect;
+    SceneObject* pSceneObject = mScene->Intersect(ray, isect);
+    if (pSceneObject == nullptr) {
+        return Color(0, 0, 0);
+    }
+
+    Material* pMaterial = pSceneObject->GetMaterial();
+    // Lo(p)
+
+    Color Lo(0, 0, 0);
+
+    Matrix3x3 localToWorld = MakeCoordinateSystem(isect.normal);
+    Matrix3x3 worldToLocal = glm::transpose(localToWorld);
+
+    Vector3f wo = worldToLocal * (-ray.d);
+
+    for (Light* pLight : mScene->GetLights()) {
+        Vector3f sourcePos;
+        Color L = pLight->GetRadiance(isect.position, sourcePos);
+
+        // test if the light can be received
+        Vector3f d = sourcePos - isect.position;
+        Ray shadowRay;
+        shadowRay.o = isect.position;
+        shadowRay.d = glm::normalize(d);
+        shadowRay.mint = 1e-3f;
+        shadowRay.maxt = glm::length(d);
+
+        Intersection shadow_isect;
+        if (mScene->Intersect(shadowRay, shadow_isect)) { // if shadowRay intersect some scene obj, p is in the shadow, hence continue
+            continue;
+        }
+        Vector3f wi = worldToLocal * shadowRay.d;
+        float cosTheta = glm::dot(isect.normal, shadowRay.d);
+        Color brdf = pMaterial->BRDF(wo, wi);
+        Lo += brdf * L * glm::max(cosTheta, 0.0f);
+    }
+    return Lo;
 }
 
 // render thread's entry

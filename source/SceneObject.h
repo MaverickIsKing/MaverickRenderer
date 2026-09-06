@@ -3,6 +3,8 @@
 #include "Primitive.h"
 #include <vector>
 
+class Material;
+
 class SceneObject {
 public:
 	SceneObject(const Vector3f& position, const Vector3f& euler, float scale) {
@@ -17,7 +19,6 @@ public:
 	bool Intersect(Ray ray, Intersection& isect) const;
 
 	Matrix4x4 GetObjectToWorld() const { return mObjectToWorld; }
-
 	Matrix4x4 GetWorldToObject() const { return mWorldToObject; }
 
 	template<typename T, typename...Args>
@@ -27,9 +28,14 @@ public:
 		return primitive;
 	}
 
+	void SetMaterial(Material* pMaterial) { m_pMaterial = pMaterial; }
+	Material* GetMaterial() const { return m_pMaterial; }
+
 private:
 	Matrix4x4 mObjectToWorld;
 	Matrix4x4 mWorldToObject;
+
+	Material* m_pMaterial = nullptr;
 
 	std::vector<Primitive*> mPrimitives;
 };
