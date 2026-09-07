@@ -7,44 +7,10 @@
 const int numThreads = std::thread::hardware_concurrency();
 // const int numOfSSAA = 100;
 
-Renderer::Renderer(int w, int h, int SamplePerPixel, const char* filepath) : mViewportWidth(w), mViewportHeight(h), mSamplePerPixel(SamplePerPixel) {
+Renderer::Renderer(int w, int h, int minDepth, int maxDepth, int SamplePerPixel, const char* filepath) : mViewportWidth(w), mViewportHeight(h), mMinDepth(minDepth), mMaxDepth(maxDepth), mSamplePerPixel(SamplePerPixel) {
     mCurrentPixelIndex = 0;
 
     mScene = Scene::LoadSceneFromXML(filepath, w, h);
-    
-    //auto pMaterial1 = mScene->CreateMaterial<LambertMaterial>("RedLambert", Color(1.0f, 0.0f, 0.0f));
-    //auto pSceneObject1 = mScene->CreateSceneObject(Vector3f(0, 0, 5), Vector3f(0, 0, 0), 2.0f);
-    //auto pSceneObject2 = mScene->CreateSceneObject(Vector3f(0, 0, 2), Vector3f(0, 0, 0), 2.0f);
-
-
-    //pSceneObject1->SetMaterial(pMaterial1);
-    //pSceneObject1->SetMaterial(pMaterial1);
-    //mScene->CreateLight<DirectionalLight>(Vector3f(-1, -1, -1), Color(1, 0, 0));
-    //mScene->CreateLight<PointLight>(Vector3f(0, 5, 0), Color(0, 1.0f, 0), Vector3f(1, 0,0));
-    
-    
-    //mScene = new Scene();
-    ////setting camera
-    //Camera camera;
-    //camera.Initialize(
-    //    Vector3f(0.0f, 0.0f, 0.0f), // camera position
-    //    Vector3f(0.0f, 0.0f, 1.0f), // target
-    //    Vector3f(0.0f, 1.0f, 0.0f), // up
-    //    glm::radians(60.0f), // FOV
-    //    0.1f, // near panel
-    //    1000.0f, // far panel
-    //    w, h); // viewport W, H
-
-    //mScene->SetCamera(camera);
-
-    ////setting scene (adding SceneObjects)
-
-    //SceneObject* pSceneObject = mScene->CreateSceneObject(Vector3f(0, 0, 5), Vector3f(0, 0, 0), 2.0f);
-    //pSceneObject->CreatePrimitive<Triangle>(Vector3f(-1, -1, 0), Vector3f(1, -1, 0), Vector3f(1, 1, 0));
-    //pSceneObject->CreatePrimitive<Triangle>(Vector3f(-1, -1, 0), Vector3f(1, 1, 0), Vector3f(-1, 1, 0));
-
-    //SceneObject* pSceneObject2 = mScene->CreateSceneObject(Vector3f(0, 0, 2.0f), Vector3f(0, 0, 0), 1.0f);
-    //pSceneObject2->CreatePrimitive<Sphere>(0.5f);
 }
 
 Renderer::~Renderer() {
@@ -106,30 +72,10 @@ Color Renderer::RenderSubPixel(float x, float y) {
     // Get the ray emiting from camera origin through some p in the world where p depends on the pixel coordinate (x, y). ie: p = invCombinedMatrix((x, y, 0, 1))
     Ray ray = mScene->GetCamera().GetRay(x, y);
     
-    
-    //Intersection isect;
-    //Color color(0, 0, 0);
-
-    //if (mScene->Intersect(ray, isect)) {
-    //    color = isect.normal * 0.5f + 0.5f;
-    //}
-    
-    
-    //bool hit = false;
-    //for (const auto& primitive : mPrimitives) {
-    //    if (primitive->Intersect(ray, isect)) {
-    //        ray.maxt = isect.t;
-    //        hit = true;
-    //    }
-    //}
-
-    //if (hit) {
-    //    color = isect.normal * 0.5f + 0.5f;
-    //}
-    return GetRadiance(ray);
+    return GetRadiance(ray, 0);
 }
 
-Color Renderer::GetIrradiance(const Ray& ray)
+Color Renderer::GetIrradiance(const Ray& ray) // no brdf considered, just irradiance
 {   
     Intersection isect;
     if (!mScene->Intersect(ray, isect)) {
@@ -162,8 +108,22 @@ Color Renderer::GetIrradiance(const Ray& ray)
     return E;
 }
 
-Color Renderer::GetRadiance(const Ray& ray)
+Color Renderer::GetRadiance(const Ray& ray, int depth) // depth for indirect light recursion depth
 {
+    if (depth > mMaxDepth) {
+        return Color(0, 0, 0);
+    }
+    // russian roulette
+    static const float SurvivalProbability = 0.8f;
+    float RewardFactor = 1.0f;
+    if (depth >= mMinDepth) {
+        float K = Random01();
+        if (K > SurvivalProbability) {
+            return Color(0, 0, 0);
+        }
+        RewardFactor = 1.0f / SurvivalProbability;
+    }
+
     Intersection isect;
     SceneObject* pSceneObject = mScene->Intersect(ray, isect);
     if (pSceneObject == nullptr) {
@@ -180,6 +140,7 @@ Color Renderer::GetRadiance(const Ray& ray)
 
     Vector3f wo = worldToLocal * (-ray.d);
 
+    // direct light
     for (Light* pLight : mScene->GetLights()) {
         Vector3f sourcePos;
         Color L = pLight->GetRadiance(isect.position, sourcePos);
@@ -201,24 +162,29 @@ Color Renderer::GetRadiance(const Ray& ray)
         Color brdf = pMaterial->BRDF(wo, wi);
         Lo += brdf * L * glm::max(cosTheta, 0.0f);
     }
-    return Lo;
+
+    // indirect light (monte carlo integral # of trails = # SSAA)
+    {   // integral_{0}^{2pi}integral_{0}^{pi/2}brdf(theta, phi) * L(theta, phi) * cos(theta) * sin(theta) * (dtheta)(dphi)
+
+        const float theta = Random(0.0f, PI * 0.5f);
+        const float phi = Random(0.0f, PI * 2.0f);
+        Vector3f wi = GetSphericalCoordinate(theta, phi);
+
+        Color brdf = pMaterial->BRDF(wo, wi);
+        Ray r;
+        r.d = localToWorld * wi;
+        r.o = isect.position;
+        r.mint = 1e-3f;
+        Color Li = GetRadiance(r, depth + 1);
+
+        // (2pi - 0) * (pi/2 - 0) for the total base area
+        Lo += PI * PI * brdf * Li * cos(theta) * sin(theta);
+    }
+    return Lo * RewardFactor;
 }
 
 // render thread's entry
 void Renderer::RunRenderThread() {
-    //single thread:
-    
-    //for (int y = 0; y < mViewportHeight; y++) {
-    //    for (int x = 0; x < mViewportWidth; x++) {
-    //        Color color = RenderPixel(x, y);
-    //        uint32_t r = glm::clamp((uint32_t)std::round(color.r * 255.0f), 0u, 255u);
-    //        uint32_t g = glm::clamp((uint32_t)std::round(color.g * 255.0f), 0u, 255u);
-    //        uint32_t b = glm::clamp((uint32_t)std::round(color.b * 255.0f), 0u, 255u);
-    //        uint32_t a = 255;
-    //        mBuffer[y * mViewportWidth + x] = (a << 24) | (r << 16) | (g << 8) | b;
-    //    }
-    //}
-
     //multi threads:
     
     // fetch the next pixel in current viewport waiting to be rendered

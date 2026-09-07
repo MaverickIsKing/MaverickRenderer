@@ -1,5 +1,6 @@
 #pragma once
 #include <iostream>
+#include <random>
 #include <MiniFB.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/constants.hpp>
@@ -91,4 +92,22 @@ inline Matrix3x3 MakeCoordinateSystem(const Vector3f& w) {
     v = glm::normalize(v);
 
     return Matrix3x3(u, v, w);
+}
+
+inline float Random01()
+{
+    thread_local std::mt19937 gen(std::random_device{}());
+    thread_local std::uniform_real_distribution<float> dist(0.0f, 1.0f);
+    return dist(gen);
+}
+
+inline float Random(float a, float b)
+{
+    return a + (b - a) * Random01();
+}
+
+// spherical to cartesian (on unit sphere)
+inline Vector3f GetSphericalCoordinate(float theta, float phi)
+{
+    return Vector3f(sinf(theta) * cosf(phi), sinf(theta) * sinf(phi), cosf(theta));
 }

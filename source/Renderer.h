@@ -10,7 +10,7 @@
 
 class Renderer {
 public:
-	Renderer(int w, int h, int SamplePerPixel, const char* filepath);
+	Renderer(int w, int h, int minDepth, int maxDepth, int SamplePerPixel, const char* filepath);
 	virtual ~Renderer();
 	void Run();
 
@@ -21,7 +21,7 @@ private:
 
 	Color GetIrradiance(const Ray& ray);
 
-	Color GetRadiance(const Ray& ray);
+	Color GetRadiance(const Ray& ray, int depth); // depth for indirect light recursion depth
 
 	void RunRenderThread();
 
@@ -29,7 +29,8 @@ private:
 	int mViewportHeight = 600;
 
 	int mSamplePerPixel = 100;
-
+	int mMaxDepth = 10;
+	int mMinDepth = 3;
 	uint32_t* mBuffer = nullptr;
 	
 	std::atomic<int> mCurrentPixelIndex = 0;

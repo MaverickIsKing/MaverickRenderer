@@ -172,20 +172,20 @@
 
 	<Lights>
 
-		<!-- 平行光
+		<!-- directional light
 		 <DirectionalLight>
 			 <Direction>1, -2, 0.4</Direction>
 			 <Radiance>1, 1, 1.0</Radiance>
 		 </DirectionalLight>
 		  -->
 
-		<!-- 点光源 -->
+		<!-- point light -->
 		<PointLight>
 			<Position>0, 1, 0</Position>
 			<Intensity>2, 2, 2</Intensity>
 			<Attenuations>1, 0, 0</Attenuations>
 		</PointLight>
-
+		<!-- spot light -->
 		<SpotLight>
 			<Position>-0.8, 0.9, 0</Position>
 			<Direction>2, -1, 0</Direction>
