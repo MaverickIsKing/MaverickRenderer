@@ -103,6 +103,19 @@ Scene* Scene::LoadSceneFromXML(const char* filepath, int W, int H)
 				Color albedo = ParseVector3f(GetChildText(pMatElem, "Albedo"));
 				pScene->CreateMaterial<LambertMaterial>(name, albedo);
 			}
+			else if (type == "ConductorSpecular")
+			{
+				Color eta = ParseVector3f(GetChildText(pMatElem, "Eta"));
+				Color absorptionCoef = ParseVector3f(GetChildText(pMatElem, "AbsorptionCoef"));
+				Color reflectionColor = ParseVector3f(GetChildText(pMatElem, "ReflectionColor"));
+				pScene->CreateMaterial<ConductorSpecularMaterial>(name, eta, absorptionCoef, reflectionColor);
+			}
+			else if (type == "DielectricSpecular")
+			{
+				float eta = GetChildFloat(pMatElem, "Eta", 1.5f);
+				Color transmissionColor = ParseVector3f(GetChildText(pMatElem, "TransmissionColor"));
+				pScene->CreateMaterial<DielectricSpecularMaterial>(name, eta, transmissionColor);
+			}
 			// 后续可在此扩展更多材质类型
 		}
 	}

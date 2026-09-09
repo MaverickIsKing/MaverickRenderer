@@ -141,29 +141,60 @@ Color Renderer::GetRadiance(const Ray& ray, int depth) // depth for indirect lig
     Vector3f wo = worldToLocal * (-ray.d);
 
     // direct light
-    for (Light* pLight : mScene->GetLights()) {
-        Vector3f sourcePos;
-        Color L = pLight->GetRadiance(isect.position, sourcePos);
+    if (!pMaterial->IsSpecular())
+    {
+        for (Light* pLight : mScene->GetLights()) {
+            Vector3f sourcePos;
+            Color L = pLight->GetRadiance(isect.position, sourcePos);
 
-        // test if the light can be received
-        Vector3f d = sourcePos - isect.position;
-        Ray shadowRay;
-        shadowRay.o = isect.position;
-        shadowRay.d = glm::normalize(d);
-        shadowRay.mint = 1e-3f;
-        shadowRay.maxt = glm::length(d);
+            // test if the light can be received
+            Vector3f d = sourcePos - isect.position;
+            Ray shadowRay;
+            shadowRay.o = isect.position;
+            shadowRay.d = glm::normalize(d);
+            shadowRay.mint = 1e-3f;
+            shadowRay.maxt = glm::length(d);
 
-        Intersection shadow_isect;
-        if (mScene->Intersect(shadowRay, shadow_isect)) { // if shadowRay intersect some scene obj, p is in the shadow, hence continue
-            continue;
+            Intersection shadow_isect;
+            if (mScene->Intersect(shadowRay, shadow_isect)) { // if shadowRay intersect some scene obj, p is in the shadow, hence continue
+                continue;
+            }
+            Vector3f wi = worldToLocal * shadowRay.d;
+            float cosTheta = glm::dot(isect.normal, shadowRay.d);
+            Color brdf = pMaterial->BRDF(wo, wi);
+            Lo += brdf * L * glm::max(cosTheta, 0.0f);
         }
-        Vector3f wi = worldToLocal * shadowRay.d;
-        float cosTheta = glm::dot(isect.normal, shadowRay.d);
-        Color brdf = pMaterial->BRDF(wo, wi);
-        Lo += brdf * L * glm::max(cosTheta, 0.0f);
     }
 
     // indirect light (monte carlo integral # of trails = # SSAA)
+    if (pMaterial->IsSpecular()) // for spacular indirect light come from only one possible direction
+    {   // reflection
+        {
+            Vector3f wi(-wo.x, -wo.y, wo.z);
+            Color brdf = pMaterial->BRDF(wo, wi);
+            Ray r;
+            r.d = localToWorld * wi;
+            r.o = isect.position;
+            r.mint = 1e-3f;
+            Color Li = GetRadiance(r, depth + 1);
+            Lo += brdf * Li * fabs(wi.z);
+        }
+        // refrection
+        {
+            Vector3f wi;
+            if (pMaterial->SampleWt(wo, wi))
+            {
+                Color btdf = pMaterial->BTDF(wo, wi);
+                Ray r;
+                r.d = localToWorld * wi;
+                r.o = isect.position;
+                r.mint = 1e-3f;
+                Color Li = GetRadiance(r, depth + 1);
+                Lo += btdf * Li * fabs(wi.z);
+            }
+        }
+    }
+    else
     {   // integral_{0}^{2pi}integral_{0}^{pi/2}brdf(theta, phi) * L(theta, phi) * cos(theta) * sin(theta) * (dtheta)(dphi)
 
         const float theta = Random(0.0f, PI * 0.5f);
