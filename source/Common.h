@@ -130,3 +130,40 @@ inline bool ComputeRefractVector(const Vector3f& wi, float eta_i, float eta_t, V
     wt = glm::normalize(wt);
     return true;
 }
+
+// uniform disk sampling
+inline Vector2f UniformSampleDisk(float R)
+{
+    float e1 = Random01();
+    float e2 = Random01();
+
+    float r = R * std::sqrt(e1);
+    float theta = 2.0f * PI * e2;
+    // polar to cartesian
+    return Vector2f(r * std::cos(theta), r * std::sin(theta));
+}
+
+// uniform hemisephere sampling
+inline Vector3f UniformSampleHemisphere()
+{
+    float e1 = Random01();
+    float e2 = Random01();
+
+    float cosTheta = e1;
+    float sinTheta = std::sqrt(glm::max(1.0f - cosTheta * cosTheta, 1e-5f));
+    float phi = 2.0f * PI * e2;
+
+    return Vector3f(sinTheta * std::cos(phi), sinTheta * std::sin(phi), cosTheta);
+}
+
+inline Vector3f UniformSampleTriangle(const Vector3f p0, const Vector3f p1, const Vector3f p2)
+{
+    float e1 = Random01();
+    float e2 = Random01();
+
+    float sqrt_e1 = std::sqrt(e1);
+    float u = 1.0f - sqrt_e1;
+    float v = e2 * sqrt_e1;
+
+    return (1.0f - u - v) * p0 + u * p1 + v * p2;
+}

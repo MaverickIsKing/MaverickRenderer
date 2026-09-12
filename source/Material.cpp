@@ -5,6 +5,22 @@ Color LambertMaterial::BRDF(const Vector3f& wo, const Vector3f& wi) const
 	return mAlbedo * INV_PI;
 }
 
+Vector3f LambertMaterial::SampleWi(const Vector3f& wo, float& pdf) const
+{
+	float e1 = Random01();
+	float e2 = Random01();
+
+	float cosTheta = sqrt(1.0f - e1);
+	float sinTheta = sqrt(e1);
+	float phi = 2.0f * PI * e2;
+	Vector3f wi;
+	wi.x = sinTheta * cos(phi);
+	wi.y = sinTheta * sin(phi);
+	wi.z = cosTheta;
+	pdf = cosTheta * INV_PI;
+	return wi;
+}
+
 
 Color ConductorSpecularMaterial::BRDF(const Vector3f& wo, const Vector3f& wi) const
 {
@@ -21,6 +37,13 @@ Color ConductorSpecularMaterial::BRDF(const Vector3f& wo, const Vector3f& wi) co
 	// fresnel
 	Color Fr = (r1 + r2) * 0.5f;
 	return Fr * mReflectionColor / std::max(fabs(cosTheta), 1e-4f);
+}
+
+Vector3f ConductorSpecularMaterial::SampleWi(const Vector3f& wo, float& pdf) const
+{	
+	Vector3f wi(-wo.x, -wo.y, wo.z);
+	pdf = 1.0f;
+	return wi;
 }
 
 Color DielectricSpecularMaterial::BRDF(const Vector3f& wo, const Vector3f& wi) const
@@ -82,6 +105,13 @@ bool DielectricSpecularMaterial::SampleWt(const Vector3f& wi, Vector3f& wt) cons
 		eta_i = mEta;
 	}
 	return ComputeRefractVector(wi, eta_i, eta_t, wt);
+}
+
+Vector3f DielectricSpecularMaterial::SampleWi(const Vector3f& wo, float& pdf) const
+{
+	Vector3f wi(-wo.x, -wo.y, wo.z);
+	pdf = 1.0f;
+	return wi;
 }
 
 float DielectricSpecularMaterial::Fresnel(float eta_i, float eta_t, float cos_i, float cos_t)

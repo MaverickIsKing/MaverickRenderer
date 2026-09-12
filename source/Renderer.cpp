@@ -165,42 +165,11 @@ Color Renderer::GetRadiance(const Ray& ray, int depth) // depth for indirect lig
             Lo += brdf * L * glm::max(cosTheta, 0.0f);
         }
     }
-
-    // indirect light (monte carlo integral # of trails = # SSAA)
-    if (pMaterial->IsSpecular()) // for spacular indirect light come from only one possible direction
-    {   // reflection
-        {
-            Vector3f wi(-wo.x, -wo.y, wo.z);
-            Color brdf = pMaterial->BRDF(wo, wi);
-            Ray r;
-            r.d = localToWorld * wi;
-            r.o = isect.position;
-            r.mint = 1e-3f;
-            Color Li = GetRadiance(r, depth + 1);
-            Lo += brdf * Li * fabs(wi.z);
-        }
-        // refrection
-        {
-            Vector3f wi;
-            if (pMaterial->SampleWt(wo, wi))
-            {
-                Color btdf = pMaterial->BTDF(wo, wi);
-                Ray r;
-                r.d = localToWorld * wi;
-                r.o = isect.position;
-                r.mint = 1e-3f;
-                Color Li = GetRadiance(r, depth + 1);
-                Lo += btdf * Li * fabs(wi.z);
-            }
-        }
-    }
-    else
-    {   // integral_{0}^{2pi}integral_{0}^{pi/2}brdf(theta, phi) * L(theta, phi) * cos(theta) * sin(theta) * (dtheta)(dphi)
-
-        const float theta = Random(0.0f, PI * 0.5f);
-        const float phi = Random(0.0f, PI * 2.0f);
-        Vector3f wi = GetSphericalCoordinate(theta, phi);
-
+    // indirect light
+    //reflection
+    {
+        float pdf;
+        Vector3f wi = pMaterial->SampleWi(wo, pdf);
         Color brdf = pMaterial->BRDF(wo, wi);
         Ray r;
         r.d = localToWorld * wi;
@@ -208,9 +177,73 @@ Color Renderer::GetRadiance(const Ray& ray, int depth) // depth for indirect lig
         r.mint = 1e-3f;
         Color Li = GetRadiance(r, depth + 1);
 
-        // (2pi - 0) * (pi/2 - 0) for the total base area
-        Lo += PI * PI * brdf * Li * cos(theta) * sin(theta);
+        Lo += brdf * Li * wi.z / std::max(1e-5f, pdf);
     }
+
+    //refraction
+    {    
+        Vector3f wi;
+        if (pMaterial->SampleWt(wo, wi))
+        {
+            Color btdf = pMaterial->BTDF(wo, wi);
+            Ray r;
+            r.d = localToWorld * wi;
+            r.o = isect.position;
+            r.mint = 1e-3f;
+            Color Li = GetRadiance(r, depth + 1);
+            Lo += btdf * Li * fabs(wi.z);
+        } 
+    }
+    // indirect light (monte carlo integral # of trails = # SSAA)
+    //if (pMaterial->IsSpecular()) // for spacular indirect light come from only one possible direction
+    //{   // reflection
+    //    {
+    //        Vector3f wi(-wo.x, -wo.y, wo.z);
+    //        Color brdf = pMaterial->BRDF(wo, wi);
+    //        Ray r;
+    //        r.d = localToWorld * wi;
+    //        r.o = isect.position;
+    //        r.mint = 1e-3f;
+    //        Color Li = GetRadiance(r, depth + 1);
+    //        Lo += brdf * Li * fabs(wi.z);
+    //    }
+    //    // refrection
+    //    {
+    //        Vector3f wi;
+    //        if (pMaterial->SampleWt(wo, wi))
+    //        {
+    //            Color btdf = pMaterial->BTDF(wo, wi);
+    //            Ray r;
+    //            r.d = localToWorld * wi;
+    //            r.o = isect.position;
+    //            r.mint = 1e-3f;
+    //            Color Li = GetRadiance(r, depth + 1);
+    //            Lo += btdf * Li * fabs(wi.z);
+    //        }
+    //    }
+    //}
+    //else
+    //{   // integral_{0}^{2pi}integral_{0}^{pi/2}brdf(theta, phi) * L(theta, phi) * cos(theta) * sin(theta) * (dtheta)(dphi)
+    //    // not uniform
+    //    //const float theta = Random(0.0f, PI * 0.5f);
+    //    //const float phi = Random(0.0f, PI * 2.0f);
+    //    //Vector3f wi = GetSphericalCoordinate(theta, phi);
+
+    //    // now use pdf/cdf uniform
+    //    // Vector3f wi = UniformSampleHemisphere();
+    //    float pdf;
+    //    Vector3f wi = pMaterial->SampleWi(wo, pdf);
+    //    Color brdf = pMaterial->BRDF(wo, wi);
+    //    Ray r;
+    //    r.d = localToWorld * wi;
+    //    r.o = isect.position;
+    //    r.mint = 1e-3f;
+    //    Color Li = GetRadiance(r, depth + 1);
+
+    //    // Lo += brdf * Li * cos(theta) * sin(theta) * PI * PI
+    //    // Lo += brdf * Li * wi.z * 2.0f * PI;
+    //    Lo += brdf * Li * wi.z / std::max(1e-5f, pdf);
+    //}
     return Lo * RewardFactor;
 }
 

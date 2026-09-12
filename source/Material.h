@@ -9,6 +9,7 @@ public:
 	virtual Color BTDF(const Vector3f& wo, const Vector3f& wi) const { return Color(0, 0, 0); }
 	virtual bool IsSpecular() const { return false; }
 	virtual bool SampleWt(const Vector3f& wo, Vector3f& wi) const { return false; }
+	virtual Vector3f SampleWi(const Vector3f& wo, float& pdf) const { return Vector3f(0, 0, 0); }
 };
 
 class LambertMaterial : public Material
@@ -17,6 +18,7 @@ public:
 	LambertMaterial(const Color& albedo) : mAlbedo(albedo) {}
 
 	virtual Color BRDF(const Vector3f& wo, const Vector3f& wi) const override;
+	virtual Vector3f SampleWi(const Vector3f& wo, float& pdf) const override;
 private:
 	Color mAlbedo;
 };
@@ -28,6 +30,7 @@ public:
 
 	virtual bool IsSpecular() const { return true; }
 	virtual Color BRDF(const Vector3f& wo, const Vector3f& wi) const override;
+	virtual Vector3f SampleWi(const Vector3f& wo, float& pdf) const override;
 private:
 	Color mEta; // refraction coeff
 	Color mAbsorptionCoef;
@@ -42,8 +45,8 @@ public:
 	virtual bool IsSpecular() const { return true; }
 	virtual Color BRDF(const Vector3f& wo, const Vector3f& wi) const override;
 	virtual Color BTDF(const Vector3f& wo, const Vector3f& wi) const override;
-
 	virtual bool SampleWt(const Vector3f& wo, Vector3f& wt) const override;
+	virtual Vector3f SampleWi(const Vector3f& wo, float& pdf) const override;
 private:
 	static float Fresnel(float eta_i, float eta_t, float cos_i, float cos_t);
 	float mEta;
