@@ -196,6 +196,18 @@ Scene* Scene::LoadSceneFromXML(const char* filepath, int W, int H)
 					}
 				}
 			}
+
+			// 解析 Emissive 并设置
+			const char* emissiveText = GetChildText(pObjElem, "Emissive");
+			if (emissiveText)
+			{
+				Color emissive = ParseVector3f(emissiveText);
+				pSceneObject->SetEmissive(emissive);
+				if (emissive.r > 1e-5f || emissive.g > 1e-5f || emissive.b > 1e-5f)
+				{
+					pScene->CreateLight<AreaLight>(pSceneObject);
+				}
+			}
 		}
 	}
 

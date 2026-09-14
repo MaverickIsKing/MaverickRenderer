@@ -7,7 +7,7 @@ class Material;
 
 class SceneObject {
 public:
-	SceneObject(const Vector3f& position, const Vector3f& euler, float scale) {
+	SceneObject(const Vector3f& position, const Vector3f& euler, float scale) : mEmissive(0.0f) {
 		mObjectToWorld = MakeWorldTransform(position, euler, scale);
 		mWorldToObject = glm::inverse(mObjectToWorld);
 	}
@@ -31,6 +31,11 @@ public:
 	void SetMaterial(Material* pMaterial) { m_pMaterial = pMaterial; }
 	Material* GetMaterial() const { return m_pMaterial; }
 
+	void SetEmissive(const Color& emissive) { mEmissive = emissive; }
+	Color GetEmissive() const { return mEmissive; }
+
+	void Sample(Vector3f& p, Vector3f& normal, float& pdf);
+
 private:
 	Matrix4x4 mObjectToWorld;
 	Matrix4x4 mWorldToObject;
@@ -38,4 +43,6 @@ private:
 	Material* m_pMaterial = nullptr;
 
 	std::vector<Primitive*> mPrimitives;
+
+	Color mEmissive;
 };

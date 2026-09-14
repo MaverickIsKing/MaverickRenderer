@@ -94,6 +94,13 @@ inline Matrix3x3 MakeCoordinateSystem(const Vector3f& w) {
     return Matrix3x3(u, v, w);
 }
 
+inline int RandomInt(int a, int b)
+{
+    thread_local std::mt19937 gen(std::random_device{}());
+    std::uniform_int_distribution<int> dist(a, b);
+    return dist(gen);
+}
+
 inline float Random01()
 {
     thread_local std::mt19937 gen(std::random_device{}());
@@ -150,6 +157,18 @@ inline Vector3f UniformSampleHemisphere()
     float e2 = Random01();
 
     float cosTheta = e1;
+    float sinTheta = std::sqrt(glm::max(1.0f - cosTheta * cosTheta, 1e-5f));
+    float phi = 2.0f * PI * e2;
+
+    return Vector3f(sinTheta * std::cos(phi), sinTheta * std::sin(phi), cosTheta);
+}
+
+inline Vector3f UniformSampleSphere()
+{
+    float e1 = Random01();
+    float e2 = Random01();
+
+    float cosTheta = 1 - 2 * e1;
     float sinTheta = std::sqrt(glm::max(1.0f - cosTheta * cosTheta, 1e-5f));
     float phi = 2.0f * PI * e2;
 

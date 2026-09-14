@@ -2,7 +2,7 @@
 #include "SceneObject.h"
 
 Sphere::Sphere(SceneObject* pSceneObject, float R) : Primitive(pSceneObject), mRadius(R) {
-
+	mArea = 4.0f * PI * R * R;
 }
 
 bool Sphere::Intersect(Ray ray, Intersection& isect) const {
@@ -42,4 +42,15 @@ bool Sphere::Intersect(Ray ray, Intersection& isect) const {
 	isect.normal = glm::normalize(Vector3f(m_pSceneObject->GetObjectToWorld() * Vector4f(n, 0.0f))); // world normal
 	isect.t = t;
 	return true;
+}
+
+void Sphere::Sample(Vector3f& p, Vector3f& normal, float& pdf) const
+{
+	p = UniformSampleSphere();
+	normal = p;
+	p *= mRadius;
+	// translate p to world coord
+	p = Vector3f(m_pSceneObject->GetObjectToWorld() * Vector4f(p, 1.0f));
+	normal = glm::normalize(Vector3f(m_pSceneObject->GetObjectToWorld() * Vector4f(normal, 1.0f)));
+	pdf = 1.0f / mArea;
 }

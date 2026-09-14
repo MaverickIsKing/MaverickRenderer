@@ -2,7 +2,7 @@
 #include "SceneObject.h"
 
 Disk::Disk(SceneObject* pSceneObject, float R) : Primitive(pSceneObject), mRadius(R) {
-
+	mArea = PI * R * R;
 }
 
 bool Disk::Intersect(Ray ray, Intersection& isect) const {
@@ -30,4 +30,14 @@ bool Disk::Intersect(Ray ray, Intersection& isect) const {
 	isect.t = t;
 	
 	return true;
+}
+
+void Disk::Sample(Vector3f& p, Vector3f& normal, float& pdf) const
+{
+	Vector2f p2 = UniformSampleDisk(mRadius);
+	p = Vector3f(p2.x, p2.y, 0);
+	// p needs to be translated to world coord
+	p = Vector3f(m_pSceneObject->GetObjectToWorld() * Vector4f(p, 1.0f));
+	normal = glm::normalize(Vector3f(m_pSceneObject->GetObjectToWorld() * Vector4f(0, 0, 1, 0)));
+	pdf = 1.0f / mArea;
 }

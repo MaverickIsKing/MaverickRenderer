@@ -21,7 +21,7 @@ private:
 
 	Color GetIrradiance(const Ray& ray);
 
-	Color GetRadiance(const Ray& ray, int depth); // depth for indirect light recursion depth
+	Color GetRadiance(const Ray& ray, int depth, bool prevIsSpecular); // depth for indirect light recursion depth
 
 	void RunRenderThread();
 
