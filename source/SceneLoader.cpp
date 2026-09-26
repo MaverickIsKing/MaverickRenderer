@@ -116,6 +116,12 @@ Scene* Scene::LoadSceneFromXML(const char* filepath, int W, int H)
 				Color transmissionColor = ParseVector3f(GetChildText(pMatElem, "TransmissionColor"));
 				pScene->CreateMaterial<DielectricSpecularMaterial>(name, eta, transmissionColor);
 			}
+			else if (type == "OrenNayar")
+			{
+				Color albedo = ParseVector3f(GetChildText(pMatElem, "Albedo"));
+				float sigma = GetChildFloat(pMatElem, "Sigma", 0.1f);
+				pScene->CreateMaterial<OrenNayarMaterial>(name, albedo, sigma);
+			}
 			// 后续可在此扩展更多材质类型
 		}
 	}

@@ -5,7 +5,6 @@
 #include <vector>
 
 const int numThreads = std::thread::hardware_concurrency();
-// const int numOfSSAA = 100;
 
 Renderer::Renderer(int w, int h, int minDepth, int maxDepth, int SamplePerPixel, const char* filepath) : mViewportWidth(w), mViewportHeight(h), mMinDepth(minDepth), mMaxDepth(maxDepth), mSamplePerPixel(SamplePerPixel) {
     mCurrentPixelIndex = 0;

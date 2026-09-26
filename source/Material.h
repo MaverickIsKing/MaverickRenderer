@@ -8,7 +8,7 @@ public:
 	virtual Color BRDF(const Vector3f& wo, const Vector3f& wi) const = 0;
 	virtual Color BTDF(const Vector3f& wo, const Vector3f& wi) const { return Color(0, 0, 0); }
 	virtual bool IsSpecular() const { return false; }
-	virtual bool SampleWt(const Vector3f& wo, Vector3f& wi) const { return false; }
+	virtual bool SampleWt(const Vector3f& wo, Vector3f& wt) const { return false; }
 	virtual Vector3f SampleWi(const Vector3f& wo, float& pdf) const { return Vector3f(0, 0, 0); }
 };
 
@@ -51,4 +51,18 @@ private:
 	static float Fresnel(float eta_i, float eta_t, float cos_i, float cos_t);
 	float mEta;
 	Color mTransmissionColor;
+};
+
+// Oren-Nayar
+
+class OrenNayarMaterial : public Material
+{
+public:
+	OrenNayarMaterial(const Color& albedo, float sigma) : mAlbedo(albedo), mSigma(sigma){}
+	virtual Color BRDF(const Vector3f& wo, const Vector3f& wi) const override;
+	virtual Vector3f SampleWi(const Vector3f& wo, float& pdf) const override;
+
+private:
+	Color mAlbedo;
+	float mSigma;
 };
