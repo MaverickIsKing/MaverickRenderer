@@ -141,7 +141,7 @@ Color Renderer::GetRadiance(const Ray& ray, int depth, bool prevIsSpecular) // d
 
     // emissive light
     Color Le = pSceneObject->GetEmissive();
-    if (prevIsSpecular || depth ==0 )
+    if (prevIsSpecular || depth == 0 )
     {
         Lo += Le;
     }

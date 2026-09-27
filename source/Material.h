@@ -34,7 +34,7 @@ public:
 private:
 	Color mEta; // refraction coeff
 	Color mAbsorptionCoef;
-	Color mReflectionColor;
+	Color mReflectionColor; // for object color manipulation
 };
 
 class DielectricSpecularMaterial : public Material
@@ -50,11 +50,10 @@ public:
 private:
 	static float Fresnel(float eta_i, float eta_t, float cos_i, float cos_t);
 	float mEta;
-	Color mTransmissionColor;
+	Color mTransmissionColor; // for object color manipulation
 };
 
-// Oren-Nayar
-
+// Oren-Nayar (lambert with roughness)
 class OrenNayarMaterial : public Material
 {
 public:
@@ -65,4 +64,19 @@ public:
 private:
 	Color mAlbedo;
 	float mSigma;
+};
+
+// Torrance-Sparrow (conduct specular with roughness)
+class TorranceSparrowMaterial : public Material
+{
+public:
+	TorranceSparrowMaterial(float e, const Color& eta, const Color& absorptionCoef, const Color& reflectionColor) : mExponent(e), mEta(eta), mAbsorptionCoef(absorptionCoef), mReflectionColor(reflectionColor) {}
+
+	virtual Color BRDF(const Vector3f& wo, const Vector3f& wi) const override;
+	virtual Vector3f SampleWi(const Vector3f& wo, float& pdf) const override;
+private:
+	float mExponent; // "e" describes smoothness
+	Color mEta; // refraction coeff
+	Color mAbsorptionCoef;
+	Color mReflectionColor; // for object color manipulation
 };

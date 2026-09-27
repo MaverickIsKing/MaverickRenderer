@@ -122,6 +122,14 @@ Scene* Scene::LoadSceneFromXML(const char* filepath, int W, int H)
 				float sigma = GetChildFloat(pMatElem, "Sigma", 0.1f);
 				pScene->CreateMaterial<OrenNayarMaterial>(name, albedo, sigma);
 			}
+			else if (type == "TorranceSparrow")
+			{	
+				float exponent = GetChildFloat(pMatElem, "Exponent", 1.0f);
+				Color eta = ParseVector3f(GetChildText(pMatElem, "Eta"));
+				Color absorptionCoef = ParseVector3f(GetChildText(pMatElem, "AbsorptionCoef"));
+				Color reflectionColor = ParseVector3f(GetChildText(pMatElem, "ReflectionColor"));
+				pScene->CreateMaterial<TorranceSparrowMaterial>(name, exponent, eta, absorptionCoef, reflectionColor);
+			}
 			// 后续可在此扩展更多材质类型
 		}
 	}
