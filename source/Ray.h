@@ -22,5 +22,6 @@ inline Ray operator*(const Matrix4x4& m, const Ray& r) {
 struct Intersection {
 	Vector3f position; // intersection point (coordinate in world)
 	Vector3f normal; // normal vector at intersection
+	Vector2f uv; // uv coord of the intersection
 	float t; // t in Ray, denote distance from ray origin to the intersection point
 };

@@ -32,6 +32,6 @@ void SceneObject::Sample(Vector3f& p, Vector3f& normal, float& pdf)
 	{
 		totalArea += mPrimitive->getArea();
 	}
-	float div = std::max(1e-3f, totalArea);
+	float div = std::max(1e-5f, totalArea);
 	pdf = pdf * mPrimitives[index]->getArea() / div;
 }

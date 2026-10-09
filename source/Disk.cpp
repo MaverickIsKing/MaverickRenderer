@@ -29,6 +29,15 @@ bool Disk::Intersect(Ray ray, Intersection& isect) const {
 	isect.normal = glm::normalize(Vector3f(m_pSceneObject->GetObjectToWorld() * Vector4f(0, 0, 1, 0))); // world normal (transformed from z-axis = (0,0,1,0))
 	isect.t = t;
 	
+	float phi = std::atan2f(p.y, p.x);
+	if (phi < 0)
+	{
+		phi += 2 * PI;
+	}
+
+	isect.uv.x = phi * 0.5f * INV_PI;
+	isect.uv.y = glm::length(p) / mRadius;
+
 	return true;
 }
 

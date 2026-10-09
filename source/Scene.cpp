@@ -17,6 +17,21 @@ SceneObject* Scene::CreateSceneObject(const Vector3f& position, const Vector3f& 
 	return pSceneObject;
 }
 
+Texture* Scene::GetOrCreateTexture(const std::string& filePath)
+{
+	if (mTextures.find(filePath) != mTextures.end())
+	{
+		return mTextures[filePath];
+	}
+
+	Texture* pTexture = Texture::CreateFromFile(filePath);
+	if (pTexture == nullptr)
+		return nullptr;
+
+	mTextures[filePath] = pTexture;
+	return pTexture;
+}
+
 Scene::~Scene() {
 	for (SceneObject* pSceneObject : mSceneObjects) {
 		if (pSceneObject) {

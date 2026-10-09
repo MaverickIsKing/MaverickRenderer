@@ -1,12 +1,17 @@
 #include "Material.h"
 
-Color LambertMaterial::BRDF(const Vector3f& wo, const Vector3f& wi) const
+Color LambertMaterial::BRDF(Vector2f uv, const Vector3f& wo, const Vector3f& wi) const
 {
 	if (wo.z <= 0 || wi.z <= 0) { return Color(0.0f); }
-	return mAlbedo * INV_PI;
+	Vector3f albedo = mAlbedo;
+	if (m_pAlbedoMap)
+	{
+		albedo *= m_pAlbedoMap->Sample<Color>(uv);
+	}
+	return albedo * INV_PI;
 }
 
-Vector3f LambertMaterial::SampleWi(const Vector3f& wo, float& pdf) const
+Vector3f LambertMaterial::SampleWi(Vector2f uv, const Vector3f& wo, float& pdf) const
 {
 	float e1 = Random01();
 	float e2 = Random01();
@@ -14,16 +19,13 @@ Vector3f LambertMaterial::SampleWi(const Vector3f& wo, float& pdf) const
 	float cosTheta = sqrt(1.0f - e1);
 	float sinTheta = sqrt(e1);
 	float phi = 2.0f * PI * e2;
-	Vector3f wi;
-	wi.x = sinTheta * cos(phi);
-	wi.y = sinTheta * sin(phi);
-	wi.z = cosTheta;
+	Vector3f wi = Vector3f(sinTheta * cos(phi), sinTheta * sin(phi), cosTheta);
 	pdf = cosTheta * INV_PI;
 	return wi;
 }
 
 
-Color ConductorSpecularMaterial::BRDF(const Vector3f& wo, const Vector3f& wi) const
+Color ConductorSpecularMaterial::BRDF(Vector2f uv, const Vector3f& wo, const Vector3f& wi) const
 {
 	if (!(fabs(wo.x + wi.x) < 1e-4f && fabs(wo.y + wi.y) < 1e-4f && fabs(wo.z - wi.z) < 1e-4f))
 	{
@@ -40,14 +42,14 @@ Color ConductorSpecularMaterial::BRDF(const Vector3f& wo, const Vector3f& wi) co
 	return Fr * mReflectionColor / std::max(fabs(cosTheta), 1e-5f);
 }
 
-Vector3f ConductorSpecularMaterial::SampleWi(const Vector3f& wo, float& pdf) const
+Vector3f ConductorSpecularMaterial::SampleWi(Vector2f uv, const Vector3f& wo, float& pdf) const
 {	
 	Vector3f wi(-wo.x, -wo.y, wo.z);
 	pdf = 1.0f;
 	return wi;
 }
 
-Color DielectricSpecularMaterial::BRDF(const Vector3f& wo, const Vector3f& wi) const
+Color DielectricSpecularMaterial::BRDF(Vector2f uv, const Vector3f& wo, const Vector3f& wi) const
 {	
 	float cos_i = fabs(wi.z);
 	float eta_i, eta_t;
@@ -108,7 +110,7 @@ bool DielectricSpecularMaterial::SampleWt(const Vector3f& wi, Vector3f& wt) cons
 	return ComputeRefractVector(wi, eta_i, eta_t, wt);
 }
 
-Vector3f DielectricSpecularMaterial::SampleWi(const Vector3f& wo, float& pdf) const
+Vector3f DielectricSpecularMaterial::SampleWi(Vector2f uv, const Vector3f& wo, float& pdf) const
 {
 	Vector3f wi(-wo.x, -wo.y, wo.z);
 	pdf = 1.0f;
@@ -122,7 +124,7 @@ float DielectricSpecularMaterial::Fresnel(float eta_i, float eta_t, float cos_i,
 	return 0.5f * (r1 * r1 + r2 * r2);
 }
 
-Color OrenNayarMaterial::BRDF(const Vector3f& wo, const Vector3f& wi) const
+Color OrenNayarMaterial::BRDF(Vector2f uv, const Vector3f& wo, const Vector3f& wi) const
 {	
 	static const float epsilon = 1e-5f;
 	if (wo.z <= epsilon || wi.z <= epsilon) { return Color(0.0f); }
@@ -147,10 +149,17 @@ Color OrenNayarMaterial::BRDF(const Vector3f& wo, const Vector3f& wi) const
 
 	float cosDeltaPhi = cosPhi_i * cosPhi_o + sinPhi_i * sinPhi_o;
 
-	return mAlbedo * INV_PI * (A + B *std::max(0.0f, cosDeltaPhi) * sinAlpha * tanBeta);
+	Vector3f albedo = mAlbedo;
+
+	if (m_pAlbedoMap)
+	{
+		albedo *= m_pAlbedoMap->Sample<Color>(uv);
+	}
+
+	return albedo * INV_PI * (A + B *std::max(0.0f, cosDeltaPhi) * sinAlpha * tanBeta);
 }
 
-Vector3f OrenNayarMaterial::SampleWi(const Vector3f& wo, float& pdf) const
+Vector3f OrenNayarMaterial::SampleWi(Vector2f uv, const Vector3f& wo, float& pdf) const
 {// same as lambert sampleWi
 	float e1 = Random01();
 	float e2 = Random01();
@@ -166,7 +175,7 @@ Vector3f OrenNayarMaterial::SampleWi(const Vector3f& wo, float& pdf) const
 	return wi;
 }
 
-Color TorranceSparrowMaterial::BRDF(const Vector3f& wo, const Vector3f& wi) const
+Color TorranceSparrowMaterial::BRDF(Vector2f uv, const Vector3f& wo, const Vector3f& wi) const
 {
 	static const float epsilon = 1e-5f;
 	if (wo.z <= epsilon || wi.z <= epsilon) { return Color(0.0f); }
@@ -187,7 +196,7 @@ Color TorranceSparrowMaterial::BRDF(const Vector3f& wo, const Vector3f& wi) cons
 	return mReflectionColor * D * G * Fr / (4.0f * wo.z * wi.z);
 }
 
-Vector3f TorranceSparrowMaterial::SampleWi(const Vector3f& wo, float& pdf) const
+Vector3f TorranceSparrowMaterial::SampleWi(Vector2f uv, const Vector3f& wo, float& pdf) const
 {
 	float e1 = Random01();
 	float e2 = Random01();

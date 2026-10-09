@@ -10,6 +10,7 @@ Renderer::Renderer(int w, int h, int minDepth, int maxDepth, int SamplePerPixel,
     mCurrentPixelIndex = 0;
 
     mScene = Scene::LoadSceneFromXML(filepath, w, h);
+
 }
 
 Renderer::~Renderer() {
@@ -70,8 +71,8 @@ Color Renderer::RenderPixel(int x, int y) {
 Color Renderer::RenderSubPixel(float x, float y) {
     // Get the ray emiting from camera origin through some p in the world where p depends on the pixel coordinate (x, y). ie: p = invCombinedMatrix((x, y, 0, 1))
     Ray ray = mScene->GetCamera().GetRay(x, y);
-    
-    return GetRadiance(ray, 0, false);
+    Color color = GetRadiance(ray, 0, false);
+    return color;
 }
 
 //Color Renderer::GetIrradiance(const Ray& ray) // no brdf considered, just irradiance
@@ -168,7 +169,7 @@ Color Renderer::GetRadiance(const Ray& ray, int depth, bool prevIsSpecular) // d
             }
             Vector3f wi = worldToLocal * shadowRay.d;
             float cosTheta = glm::dot(isect.normal, shadowRay.d);
-            Color brdf = pMaterial->BRDF(wo, wi);
+            Color brdf = pMaterial->BRDF(isect.uv, wo, wi);
             Lo += brdf * L * glm::max(cosTheta, 0.0f) / std::max(1e-5f, pdf);
         }
     }
@@ -176,8 +177,8 @@ Color Renderer::GetRadiance(const Ray& ray, int depth, bool prevIsSpecular) // d
     //reflection
     {
         float pdf;
-        Vector3f wi = pMaterial->SampleWi(wo, pdf);
-        Color brdf = pMaterial->BRDF(wo, wi);
+        Vector3f wi = pMaterial->SampleWi(isect.uv, wo, pdf);
+        Color brdf = pMaterial->BRDF(isect.uv, wo, wi);
         Ray r;
         r.d = localToWorld * wi;
         r.o = isect.position;

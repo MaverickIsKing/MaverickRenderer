@@ -37,10 +37,21 @@ bool Sphere::Intersect(Ray ray, Intersection& isect) const {
 	
 	Vector3f p = r.o + t * r.d; // local intersection 
 	Vector3f n = glm::normalize(p); // local normal
-	
+
 	isect.position = Vector3f(m_pSceneObject->GetObjectToWorld() * Vector4f(p, 1.0f)); // world intersection
 	isect.normal = glm::normalize(Vector3f(m_pSceneObject->GetObjectToWorld() * Vector4f(n, 0.0f))); // world normal
 	isect.t = t;
+
+	float theta = std::acosf(n.z);
+	float phi = std::atan2f(p.y, p.x);
+	if (phi < 0)
+	{
+		phi += 2 * PI;
+	}
+
+	isect.uv.x = phi * 0.5f * INV_PI;
+	isect.uv.y = theta * INV_PI;
+
 	return true;
 }
 

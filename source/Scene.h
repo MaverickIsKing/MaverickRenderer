@@ -2,6 +2,7 @@
 #include "Camera.h"
 #include "SceneObject.h"
 #include "Light.h"
+#include "Texture.h"
 #include <vector>
 #include <map>
 
@@ -44,9 +45,12 @@ public:
 		return it != mMaterials.end() ? it->second : nullptr;
 	}
 
+	Texture* GetOrCreateTexture(const std::string& filePath);
+
 private:
 	Camera mCamera;
 	std::vector<SceneObject*> mSceneObjects;
 	std::vector<Light*> mLights;
 	std::map<std::string, Material*> mMaterials;
+	std::map<std::string, Texture*> mTextures;
 };

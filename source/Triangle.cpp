@@ -1,21 +1,25 @@
 #include "Triangle.h"
 #include "SceneObject.h"
 
-Triangle::Triangle(SceneObject* pSceneObject, const Vector3f& v0, const Vector3f& v1, const Vector3f& v2) : Primitive(pSceneObject) {
+Triangle::Triangle(SceneObject* pSceneObject, const Vector3f positions[], const Vector2f uvs[]) : Primitive(pSceneObject) {
 	Matrix4x4 worldMatrix = m_pSceneObject->GetObjectToWorld();
-	mVertices[0] = Vector3f(worldMatrix * Vector4f(v0, 1.0f));
-	mVertices[1] = Vector3f(worldMatrix * Vector4f(v1, 1.0f));
-	mVertices[2] = Vector3f(worldMatrix * Vector4f(v2, 1.0f));
-	Vector3f edge1 = mVertices[1] - mVertices[0];
-	Vector3f edge2 = mVertices[2] - mVertices[0];
+
+	for (int i = 0; i < 3; i++)
+	{
+		mPositions[i] = Vector3f(worldMatrix * Vector4f(positions[i], 1.0f));
+		mTexCoords[i] = uvs[i];
+	}
+
+	Vector3f edge1 = mPositions[1] - mPositions[0];
+	Vector3f edge2 = mPositions[2] - mPositions[0];
 	mNormal = glm::normalize(glm::cross(edge1, edge2));
 	mArea = 0.5f * glm::length(glm::cross(edge1, edge2));
 }
 
 bool Triangle::Intersect(Ray ray, Intersection& isect) const {
-	Vector3f p0 = mVertices[0];
-	Vector3f p1 = mVertices[1];
-	Vector3f p2 = mVertices[2];
+	Vector3f p0 = mPositions[0];
+	Vector3f p1 = mPositions[1];
+	Vector3f p2 = mPositions[2];
 
 	Vector3f e1 = p1 - p0;
 	Vector3f e2 = p2 - p0;
@@ -32,22 +36,23 @@ bool Triangle::Intersect(Ray ray, Intersection& isect) const {
 	float b1 = glm::dot(s1, s) * invDet;
 	float b2 = glm::dot(s2, ray.d) * invDet;
 	float t = glm::dot(s2, e2) * invDet;
-
+	float b0 = 1 - b1 - b2;
 	if (t < ray.mint || t > ray.maxt) {
 		return false;
 	}
-	if (b1 < 0.0f || b2 < 0.0f || 1 - b1 - b2 < 0.0f) {
+	if (b1 < 0.0f || b2 < 0.0f || b0 < 0.0f) {
 		return false;
 	}
 	isect.position = ray.o + t * ray.d;
 	isect.normal = mNormal;
+	isect.uv = b0 * mTexCoords[0] + b1 * mTexCoords[1] + b2 * mTexCoords[2];
 	isect.t = t;
 	return true;
 }
 
 void Triangle::Sample(Vector3f& p, Vector3f& normal, float& pdf) const
 {
-	p = UniformSampleTriangle(mVertices[0], mVertices[1], mVertices[2]);
+	p = UniformSampleTriangle(mPositions[0], mPositions[1], mPositions[2]);
 	normal = mNormal;
 	pdf = 1.0f / mArea;
 }
