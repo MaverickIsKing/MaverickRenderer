@@ -2,6 +2,36 @@
 #include <vector>
 #include "Common.h"
 
+inline int clampPadding(int x, int max)
+{
+	return glm::clamp(x, 0, max - 1);
+}
+
+
+inline int warpPadding(int x, int max)
+{
+	x = x % max;
+	if (x < 0)
+	{
+		x += max;
+	}
+	return x;
+}
+
+inline int mirrorPadding(int x, int max)
+{
+	int sign = (x / max) % 2;
+	x = x % max;
+	if (x < 0)
+	{
+		x += max;
+	}
+	if (sign != 0)
+	{
+		x = max - x - 1;
+	}
+	return x;
+}
 
 class Texture
 {
@@ -17,24 +47,9 @@ public:
 	template <typename T>
 	T GetPixel(int x, int y)
 	{	
-		// clamp padding
-		//x = glm::clamp(x, 0, mWidth - 1);
-		//y = glm::clamp(y, 0, mHeight - 1);
-
-		// warp padding
-		x = x % mWidth;
-		if (x < 0)
-		{
-			x += mWidth;
-		}
 		
-		y = y % mHeight;
-		if (y < 0)
-		{
-			y += mHeight;
-		}
-
-		// mirror padding
+		x = mirrorPadding(x, mWidth);
+		y = mirrorPadding(y, mHeight);
 
 		int index = (y * mWidth + x) * mChannels;
 		

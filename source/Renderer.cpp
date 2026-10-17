@@ -135,6 +135,17 @@ Color Renderer::GetRadiance(const Ray& ray, int depth, bool prevIsSpecular) // d
 
     Color Lo(0, 0, 0);
 
+    Matrix3x3 TBN = MakeCoordinateSystem(isect.normal, isect.tangent);
+    Vector3f shadingNormal = isect.normal;
+    if (pMaterial->GetNormalMap())
+    {
+        float bumpScale = pMaterial->GetBumpScale();
+        Vector3f n = pMaterial->GetNormalMap()->Sample<Color>(isect.uv) * 2.0f - 1.0f;
+        n = glm::normalize(glm::mix(Vector3f(0, 0, 1), n, bumpScale));
+        // from TBN to world
+        shadingNormal = TBN * n;
+    }
+
     Matrix3x3 localToWorld = MakeCoordinateSystem(isect.normal);
     Matrix3x3 worldToLocal = glm::transpose(localToWorld);
 
@@ -168,13 +179,14 @@ Color Renderer::GetRadiance(const Ray& ray, int depth, bool prevIsSpecular) // d
                 continue;
             }
             Vector3f wi = worldToLocal * shadowRay.d;
-            float cosTheta = glm::dot(isect.normal, shadowRay.d);
+            //float cosTheta = glm::dot(isect.normal, shadowRay.d);
+            float cosTheta = glm::dot(shadingNormal, shadowRay.d);
             Color brdf = pMaterial->BRDF(isect.uv, wo, wi);
             Lo += brdf * L * glm::max(cosTheta, 0.0f) / std::max(1e-5f, pdf);
         }
     }
     // indirect light
-    //reflection
+    // reflection
     {
         float pdf;
         Vector3f wi = pMaterial->SampleWi(isect.uv, wo, pdf);
@@ -183,23 +195,26 @@ Color Renderer::GetRadiance(const Ray& ray, int depth, bool prevIsSpecular) // d
         r.d = localToWorld * wi;
         r.o = isect.position;
         r.mint = 1e-3f;
-        Color Li = GetRadiance(r, depth + 1, pMaterial->IsSpecular());
-
-        Lo += brdf * Li * fabs(wi.z) / std::max(1e-5f, pdf);
+        float cosTheta = glm::dot(shadingNormal, r.d);
+        if (wi.z * cosTheta > 0)
+        {
+            Color Li = GetRadiance(r, depth + 1, pMaterial->IsSpecular());
+            Lo += brdf * Li * fabs(cosTheta) / std::max(1e-5f, pdf);
+        }
     }
 
-    //refraction
+    // refraction
     {    
-        Vector3f wi;
-        if (pMaterial->SampleWt(wo, wi))
+        Vector3f wt;
+        if (pMaterial->SampleWt(wo, wt))
         {
-            Color btdf = pMaterial->BTDF(wo, wi);
+            Color btdf = pMaterial->BTDF(wo, wt);
             Ray r;
-            r.d = localToWorld * wi;
+            r.d = localToWorld * wt;
             r.o = isect.position;
             r.mint = 1e-3f;
             Color Li = GetRadiance(r, depth + 1, pMaterial->IsSpecular());
-            Lo += btdf * Li * fabs(wi.z);
+            Lo += btdf * Li * fabs(wt.z);
         } 
     }
     // indirect light (monte carlo integral # of trails = # SSAA)

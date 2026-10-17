@@ -14,6 +14,22 @@ Triangle::Triangle(SceneObject* pSceneObject, const Vector3f positions[], const 
 	Vector3f edge2 = mPositions[2] - mPositions[0];
 	mNormal = glm::normalize(glm::cross(edge1, edge2));
 	mArea = 0.5f * glm::length(glm::cross(edge1, edge2));
+
+	// dp / du
+	float du1 = mTexCoords[1].x - mTexCoords[0].x;
+	float dv1 = mTexCoords[1].y - mTexCoords[0].y;
+	float du2 = mTexCoords[2].x - mTexCoords[0].x;
+	float dv2 = mTexCoords[2].y - mTexCoords[0].y;
+
+	float det = du1 * dv2 - du2 * dv1;
+	if (fabs(det) < 1e-10f)
+	{
+		mTangent = Vector3f(1.0f, 0.0f, 0.0f);
+	}
+	else
+	{
+		mTangent = glm::normalize((dv2 * edge1 - dv1 * edge2) / det);
+	}
 }
 
 bool Triangle::Intersect(Ray ray, Intersection& isect) const {
@@ -45,6 +61,7 @@ bool Triangle::Intersect(Ray ray, Intersection& isect) const {
 	}
 	isect.position = ray.o + t * ray.d;
 	isect.normal = mNormal;
+	isect.tangent = mTangent;
 	isect.uv = b0 * mTexCoords[0] + b1 * mTexCoords[1] + b2 * mTexCoords[2];
 	isect.t = t;
 	return true;

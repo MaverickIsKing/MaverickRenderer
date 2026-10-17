@@ -156,11 +156,13 @@ Scene* Scene::LoadSceneFromXML(const char* xmlFilePath, int W, int H)
 			std::string name = nameText;
 			std::string type = typeText;
 
+			Material* pMaterial = nullptr;
+
 			if (type == "Lambert")
 			{
 				Color albedo = ParseVector3f(GetChildText(pMatElem, "Albedo"));
 				Texture* pAlbedoMap = GetOrCreateTexture(pMatElem, "AlbedoMap");
-				pScene->CreateMaterial<LambertMaterial>(name, albedo, pAlbedoMap);
+				pMaterial = pScene->CreateMaterial<LambertMaterial>(name, albedo, pAlbedoMap);
 			}
 			// 后续可在此扩展更多材质类型
 			else if (type == "ConductorSpecular")
@@ -168,20 +170,20 @@ Scene* Scene::LoadSceneFromXML(const char* xmlFilePath, int W, int H)
 				Color eta = ParseVector3f(GetChildText(pMatElem, "Eta"));
 				Color absorptionCoef = ParseVector3f(GetChildText(pMatElem, "AbsorptionCoef"));
 				Color reflectionColor = ParseVector3f(GetChildText(pMatElem, "ReflectionColor"));
-				pScene->CreateMaterial<ConductorSpecularMaterial>(name, eta, absorptionCoef, reflectionColor);
+				pMaterial = pScene->CreateMaterial<ConductorSpecularMaterial>(name, eta, absorptionCoef, reflectionColor);
 			}
 			else if (type == "DielectricSpecular")
 			{
 				float eta = GetChildFloat(pMatElem, "Eta", 1.5f);
 				Color transmissionColor = ParseVector3f(GetChildText(pMatElem, "TransmissionColor"));
-				pScene->CreateMaterial<DielectricSpecularMaterial>(name, eta, transmissionColor);
+				pMaterial = pScene->CreateMaterial<DielectricSpecularMaterial>(name, eta, transmissionColor);
 			}
 			else if (type == "OrenNayar")
 			{
 				Color albedo = ParseVector3f(GetChildText(pMatElem, "Albedo"));
 				Texture* pAlbedoMap = GetOrCreateTexture(pMatElem, "AlbedoMap");
 				float roughness = GetChildFloat(pMatElem, "Sigma", 0.0f);
-				pScene->CreateMaterial<OrenNayarMaterial>(name, albedo, pAlbedoMap, roughness);
+				pMaterial = pScene->CreateMaterial<OrenNayarMaterial>(name, albedo, pAlbedoMap, roughness);
 			}
 			else if (type == "TorranceSparrow")
 			{
@@ -189,7 +191,14 @@ Scene* Scene::LoadSceneFromXML(const char* xmlFilePath, int W, int H)
 				Color eta = ParseVector3f(GetChildText(pMatElem, "Eta"));
 				Color absorptionCoef = ParseVector3f(GetChildText(pMatElem, "AbsorptionCoef"));
 				Color reflectionColor = ParseVector3f(GetChildText(pMatElem, "ReflectionColor"));
-				pScene->CreateMaterial<TorranceSparrowMaterial>(name, exponent, eta, absorptionCoef, reflectionColor);
+				pMaterial = pScene->CreateMaterial<TorranceSparrowMaterial>(name, exponent, eta, absorptionCoef, reflectionColor);
+			}
+
+			if (pMaterial)
+			{
+				// 读取法线贴图和BumpScale：
+				pMaterial->SetNormalMap(GetOrCreateTexture(pMatElem, "NormalMap"));
+				pMaterial->SetBumpScale(GetChildFloat(pMatElem, "BumpScale", 1.0f));
 			}
 		}
 	}

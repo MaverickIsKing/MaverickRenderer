@@ -4,6 +4,9 @@
 
 class Material
 {
+private:
+	Texture* m_pNormalMap = nullptr;
+	float mBumpScale = 1.0f;
 public:
 	virtual ~Material() = default;
 	virtual Color BRDF(Vector2f uv, const Vector3f& wo, const Vector3f& wi) const = 0;
@@ -11,6 +14,11 @@ public:
 	virtual bool IsSpecular() const { return false; }
 	virtual bool SampleWt(const Vector3f& wo, Vector3f& wt) const { return false; }
 	virtual Vector3f SampleWi(Vector2f uv, const Vector3f& wo, float& pdf) const { return Vector3f(0, 0, 0); }
+	
+	void SetNormalMap(Texture* pNormalMap) { m_pNormalMap = pNormalMap; }
+	void SetBumpScale(float bumpScale) { mBumpScale = bumpScale;  }
+	Texture* GetNormalMap() const { return m_pNormalMap; }
+	float GetBumpScale() const { return mBumpScale; }
 };
 
 class LambertMaterial : public Material

@@ -94,6 +94,18 @@ inline Matrix3x3 MakeCoordinateSystem(const Vector3f& w) {
     return Matrix3x3(u, v, w);
 }
 
+// from TBN tangent space to world transform matrix
+inline Matrix3x3 MakeCoordinateSystem(Vector3f n, Vector3f t)
+{
+    Vector3f b = glm::cross(n, t);
+    t = glm::cross(b, n);
+
+    b = glm::normalize(b);
+    t = glm::normalize(t);
+
+    return Matrix3x3(t, b, n);
+}
+
 inline int RandomInt(int a, int b)
 {
     thread_local std::mt19937 gen(std::random_device{}());

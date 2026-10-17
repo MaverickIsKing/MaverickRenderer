@@ -52,6 +52,10 @@ bool Sphere::Intersect(Ray ray, Intersection& isect) const {
 	isect.uv.x = phi * 0.5f * INV_PI;
 	isect.uv.y = theta * INV_PI;
 
+	// dp / du
+	Vector3f dpdu(-p.y, p.x, 0);
+	isect.tangent = m_pSceneObject->GetObjectToWorld() * Vector4f(dpdu, 0);
+	isect.tangent = glm::normalize(isect.tangent);
 	return true;
 }
 
