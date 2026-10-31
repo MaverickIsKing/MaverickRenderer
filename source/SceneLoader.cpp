@@ -193,6 +193,16 @@ Scene* Scene::LoadSceneFromXML(const char* xmlFilePath, int W, int H)
 				Color reflectionColor = ParseVector3f(GetChildText(pMatElem, "ReflectionColor"));
 				pMaterial = pScene->CreateMaterial<TorranceSparrowMaterial>(name, exponent, eta, absorptionCoef, reflectionColor);
 			}
+			else if (type == "CookTorrance")
+			{
+				Color albedo = ParseVector3f(GetChildText(pMatElem, "Albedo"));
+				Texture* pAlbedoMap = GetOrCreateTexture(pMatElem, "AlbedoMap");
+				float roughness = GetChildFloat(pMatElem, "Roughness", 1.0f);
+				Texture* pRoughnessMap = GetOrCreateTexture(pMatElem, "RoughnessMap");
+				float metallic = GetChildFloat(pMatElem, "Metallic", 0.0f);
+				Texture* pMetallicMap = GetOrCreateTexture(pMatElem, "MetallicMap");
+				pMaterial = pScene->CreateMaterial<CookTorranceMaterial>(name, albedo, pAlbedoMap, roughness, pRoughnessMap, metallic, pMetallicMap);
+			}
 
 			if (pMaterial)
 			{

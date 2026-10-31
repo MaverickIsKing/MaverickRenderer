@@ -91,3 +91,26 @@ private:
 	Color mAbsorptionCoef;
 	Color mReflectionColor; // for object color manipulation
 };
+
+// Cook-Torrance
+class CookTorranceMaterial : public Material
+{
+public:
+	CookTorranceMaterial(const Color& albedo, Texture* pAlbedoMap, float roughness, Texture* pRoughnessMap, float metallic, Texture* pMetallicMap) : mAlbedo(albedo), m_pAlbedoMap(pAlbedoMap), mRoughness(roughness), m_pRoughnessMap(pRoughnessMap), mMetallic(metallic), m_pMetallicMap(pMetallicMap)
+	{ }
+
+	virtual Color BRDF(Vector2f uv, const Vector3f& wo, const Vector3f& wi) const override;
+	virtual Vector3f SampleWi(Vector2f uv, const Vector3f& wo, float& pdf) const override;
+
+private:
+	static Color FresnelSchlick(float metallic, const Color& albedo, const Vector3f& wo, const Vector3f& wh);
+	static float DistributionGGX(float roughness, const Vector3f& wh);
+	static float GeometrySmith(float roughness, const Vector3f& wi, const Vector3f& wo);
+	static float GeometrySchlickGGX(float k, float NdotV);
+	Color mAlbedo;
+	Texture* m_pAlbedoMap = nullptr;
+	float mRoughness{ 1.0f };
+	Texture* m_pRoughnessMap = nullptr;
+	float mMetallic{ 0.0f };
+	Texture* m_pMetallicMap = nullptr;
+};

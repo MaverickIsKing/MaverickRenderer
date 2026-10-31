@@ -172,7 +172,7 @@ Color Renderer::GetRadiance(const Ray& ray, int depth, bool prevIsSpecular) // d
             shadowRay.o = isect.position;
             shadowRay.d = glm::normalize(d);
             shadowRay.mint = 1e-3f;
-            shadowRay.maxt = glm::length(d) - 1e-4f;
+            shadowRay.maxt = glm::length(d) - 1e-5f;
 
             Intersection shadow_isect;
             if (mScene->Intersect(shadowRay, shadow_isect)) { // if shadowRay intersect some scene obj, p is in the shadow, hence continue
@@ -190,16 +190,19 @@ Color Renderer::GetRadiance(const Ray& ray, int depth, bool prevIsSpecular) // d
     {
         float pdf;
         Vector3f wi = pMaterial->SampleWi(isect.uv, wo, pdf);
-        Color brdf = pMaterial->BRDF(isect.uv, wo, wi);
-        Ray r;
-        r.d = localToWorld * wi;
-        r.o = isect.position;
-        r.mint = 1e-3f;
-        float cosTheta = glm::dot(shadingNormal, r.d);
-        if (wi.z * cosTheta > 0)
+        if (pdf > 0)
         {
-            Color Li = GetRadiance(r, depth + 1, pMaterial->IsSpecular());
-            Lo += brdf * Li * fabs(cosTheta) / std::max(1e-5f, pdf);
+            Color brdf = pMaterial->BRDF(isect.uv, wo, wi);
+            Ray r;
+            r.d = localToWorld * wi;
+            r.o = isect.position;
+            r.mint = 1e-5f;
+            float cosTheta = glm::dot(shadingNormal, r.d);
+            if (wi.z * cosTheta > 0)
+            {
+                Color Li = GetRadiance(r, depth + 1, pMaterial->IsSpecular());
+                Lo += brdf * Li * fabs(cosTheta) / std::max(1e-5f, pdf);
+            }
         }
     }
 
@@ -212,7 +215,7 @@ Color Renderer::GetRadiance(const Ray& ray, int depth, bool prevIsSpecular) // d
             Ray r;
             r.d = localToWorld * wt;
             r.o = isect.position;
-            r.mint = 1e-3f;
+            r.mint = 1e-5f;
             Color Li = GetRadiance(r, depth + 1, pMaterial->IsSpecular());
             Lo += btdf * Li * fabs(wt.z);
         } 

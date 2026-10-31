@@ -13,5 +13,5 @@ public:
 	float getArea();
 protected:
 	SceneObject* m_pSceneObject = nullptr;
-	float mArea = 0.0f;
+	float mArea{ 1e-5f };
 };
