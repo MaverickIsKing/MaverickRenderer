@@ -10,8 +10,8 @@ public:
 	virtual bool Intersect(Ray ray, Intersection& isect) const = 0;
 	virtual void Sample(Vector3f& p, Vector3f& normal, float& pdf) const = 0;
 
-	float getArea();
+	float getArea() const;
 protected:
 	SceneObject* m_pSceneObject = nullptr;
-	float mArea{ 1e-5f };
+	float mArea{ 1.0f };
 };

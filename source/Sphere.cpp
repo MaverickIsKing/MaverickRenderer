@@ -40,6 +40,7 @@ bool Sphere::Intersect(Ray ray, Intersection& isect) const {
 
 	isect.position = Vector3f(m_pSceneObject->GetObjectToWorld() * Vector4f(p, 1.0f)); // world intersection
 	isect.normal = glm::normalize(Vector3f(m_pSceneObject->GetObjectToWorld() * Vector4f(n, 0.0f))); // world normal
+	isect.shadingNormal = isect.normal;
 	isect.t = t;
 
 	float theta = std::acosf(n.z);

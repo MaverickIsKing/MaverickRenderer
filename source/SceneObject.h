@@ -1,6 +1,7 @@
 #pragma once
 #include "Ray.h"
 #include "Primitive.h"
+#include "MemoryPool.h"
 #include <vector>
 
 class Material;
@@ -23,7 +24,8 @@ public:
 
 	template<typename T, typename...Args>
 	T* CreatePrimitive(Args&&... args) {
-		T* primitive = new T(this, std::forward<Args>(args)...);
+		void* mem = MemoryPool::GetInstance().Allocate(sizeof(T));
+		T* primitive = new(mem) T(this, std::forward<Args>(args)...);
 		mPrimitives.push_back(primitive);
 		return primitive;
 	}
@@ -35,6 +37,8 @@ public:
 	Color GetEmissive() const { return mEmissive; }
 
 	void Sample(Vector3f& p, Vector3f& normal, float& pdf);
+
+	void CreatePrimitivesFromMesh(const std::string& meshFilePath);
 
 private:
 	Matrix4x4 mObjectToWorld;

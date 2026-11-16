@@ -135,8 +135,8 @@ Color Renderer::GetRadiance(const Ray& ray, int depth, bool prevIsSpecular) // d
 
     Color Lo(0, 0, 0);
 
-    Matrix3x3 TBN = MakeCoordinateSystem(isect.normal, isect.tangent);
-    Vector3f shadingNormal = isect.normal;
+    Matrix3x3 TBN = MakeCoordinateSystem(isect.shadingNormal, isect.tangent);
+    Vector3f shadingNormal = isect.shadingNormal;
     if (pMaterial->GetNormalMap())
     {
         float bumpScale = pMaterial->GetBumpScale();

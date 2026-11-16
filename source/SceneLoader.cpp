@@ -248,6 +248,15 @@ Scene* Scene::LoadSceneFromXML(const char* xmlFilePath, int W, int H)
 					pSceneObject->SetMaterial(pMaterial);
 			}
 
+			// 解析 Mesh
+			const char* meshName = GetChildText(pObjElem, "Mesh");
+			if (meshName)
+			{
+				std::string dirPath = std::filesystem::path(xmlFilePath).parent_path().string();
+				std::string meshFilePath = dirPath + "/mesh/" + meshName;
+				pSceneObject->CreatePrimitivesFromMesh(meshFilePath);
+			}
+
 			// 解析 Primitives
 			tinyxml2::XMLElement* pPrimitivesElem = pObjElem->FirstChildElement("Primitives");
 			if (pPrimitivesElem)
@@ -282,13 +291,14 @@ Scene* Scene::LoadSceneFromXML(const char* xmlFilePath, int W, int H)
 
 					if (pV0 && pV1 && pV2)
 					{
-						Vector3f positions[3];
-						Vector2f uvs[3];
+						Vector3f positions[3] = {};
+						Vector2f uvs[3] = {};
+						Vector3f normals[3] = {};
 
 						ParseVertex(pV0->GetText(), positions[0], uvs[0]);
 						ParseVertex(pV1->GetText(), positions[1], uvs[1]);
 						ParseVertex(pV2->GetText(), positions[2], uvs[2]);
-						pSceneObject->CreatePrimitive<Triangle>(positions, uvs);
+						pSceneObject->CreatePrimitive<Triangle>(positions, uvs, normals);
 					}
 				}
 			}

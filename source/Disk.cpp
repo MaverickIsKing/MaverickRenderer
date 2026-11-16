@@ -27,6 +27,7 @@ bool Disk::Intersect(Ray ray, Intersection& isect) const {
 
 	isect.position = Vector3f(m_pSceneObject->GetObjectToWorld() * Vector4f(p, 1.0f)); // world intersection point
 	isect.normal = glm::normalize(Vector3f(m_pSceneObject->GetObjectToWorld() * Vector4f(0, 0, 1, 0))); // world normal (transformed from z-axis = (0,0,1,0))
+	isect.shadingNormal = isect.normal;
 	isect.t = t;
 	
 	float phi = std::atan2f(p.y, p.x);

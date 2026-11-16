@@ -1,7 +1,7 @@
 #include "Triangle.h"
 #include "SceneObject.h"
 
-Triangle::Triangle(SceneObject* pSceneObject, const Vector3f positions[], const Vector2f uvs[]) : Primitive(pSceneObject) {
+Triangle::Triangle(SceneObject* pSceneObject, const Vector3f positions[], const Vector2f uvs[], const Vector3f normals[]) : Primitive(pSceneObject) {
 	Matrix4x4 worldMatrix = m_pSceneObject->GetObjectToWorld();
 
 	for (int i = 0; i < 3; i++)
@@ -29,6 +29,18 @@ Triangle::Triangle(SceneObject* pSceneObject, const Vector3f positions[], const 
 	else
 	{
 		mTangent = glm::normalize((dv2 * edge1 - dv1 * edge2) / det);
+	}
+
+	for (int i = 0; i < 3; i++)
+	{
+		if (glm::dot(normals[i], normals[i]) < 1e-8f)
+		{
+			mNormals[i] = mNormal;
+		}
+		else
+		{
+			mNormals[i] = glm::normalize(Vector3f(worldMatrix * Vector4f(normals[i], 0.0f)));
+		}
 	}
 }
 
@@ -61,6 +73,7 @@ bool Triangle::Intersect(Ray ray, Intersection& isect) const {
 	}
 	isect.position = ray.o + t * ray.d;
 	isect.normal = mNormal;
+	isect.shadingNormal = glm::normalize(b0 * mNormals[0] + b1 * mNormals[1] + b2 * mNormals[2]);
 	isect.tangent = mTangent;
 	isect.uv = b0 * mTexCoords[0] + b1 * mTexCoords[1] + b2 * mTexCoords[2];
 	isect.t = t;
